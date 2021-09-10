@@ -364,7 +364,7 @@ if [[ -e /etc/sysconfig/iptables-config ]];then
                 sed -i 's/IPTABLES_MODULES_UNLOAD="yes"/IPTABLES_MODULES_UNLOAD="no"/g' /etc/sysconfig/iptables-config
                 echo "安装完成，准备重启"
                 sleep 3s
-                reboot
+         
         fi
 fi
 bash /usr/local/SSR-Bash-Python/self-check.sh
