@@ -141,7 +141,7 @@ else
 #    fi
 fi
 cd /usr/local
-git clone https://git.fdos.me/stack/shadowsocksr.git
+git clone https://github.com/Readour/shadowsocksr.git
 cd ./shadowsocksr
 git checkout manyuser
 git pull
@@ -173,15 +173,14 @@ if [ -e /usr/local/bin/ssr ];then
 		exit 0
 	fi
     if [[ ! $yn == n ]];then
-        if [[ ! -e /usr/local/SSR-Bash-Python/version.txt ]];then
-        	yn="y"
-        fi
+        echo "你是否为其它版本迁移而来？（Y/N）"
+        read -t 2 -n 1 yn
     fi
     if [[ ${yn} == [yY] ]];then
         mv /usr/local/shadowsocksr/mudb.json /usr/local/mudb.json
         rm -rf /usr/local/shadowsocksr
         cd /usr/local
-        git clone https://git.fdos.me/stack/shadowsocksr.git
+        git clone https://github.com/Readour/shadowsocksr.git
         if [[ $1 == develop ]];then
             cd ./shadowsocksr
             git checkout stack/dev
@@ -209,7 +208,7 @@ if [[ -d /usr/local/SSR-Bash-Python ]];then
     if [[ $yn == [yY] ]];then
         rm -rf /usr/local/SSR-Bash-Python
         cd /usr/local
-        git clone https://github.com/scssw/SSR-Bash-Python.git
+        git clone https://github.com/Readour/AR-B-P-B.git
         mv AR-B-P-B SSR-Bash-Python
     fi
     cd /usr/local/SSR-Bash-Python
@@ -221,7 +220,7 @@ if [[ -d /usr/local/SSR-Bash-Python ]];then
     fi
 else
     cd /usr/local
-    git clone https://github.com/scssw/SSR-Bash-Python.git
+    git clone https://github.com/Readour/AR-B-P-B.git
     cd AR-B-P-B
     git checkout master
     if [[ $1 == "develop" ]];then
@@ -307,10 +306,10 @@ fi
 fi
 #Install SSR-Bash Background
 if [[ $1 == "develop" ]];then
-	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/scssw/SSR-Bash-Python/master/ssr
+	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/readour/AR-B-P-B/develop/ssr
 	chmod +x /usr/local/bin/ssr
 else
-	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/scssw/SSR-Bash-Python/master/ssr
+	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/readour/AR-B-P-B/master/ssr
 	chmod +x /usr/local/bin/ssr
 fi
 
@@ -318,7 +317,7 @@ fi
 nowip=$(grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /usr/local/shadowsocksr/userapiconfig.py)
 sed -i "s/sspanelv2/mudbjson/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/UPDATE_TIME = 60/UPDATE_TIME = 10/g" /usr/local/shadowsocksr/userapiconfig.py
-sed -i "s/SERVER_PUB_ADDR = '${nowip}'/SERVER_PUB_ADDR = '$(wget -qO- -t1 -T2 ipinfo.io/ip)'/g" /usr/local/shadowsocksr/userapiconfig.py
+sed -i "s/SERVER_PUB_ADDR = '$(nowip)'/SERVER_PUB_ADDR = '$(wget -qO- -t1 -T2 ipinfo.io/ip)'/" /usr/local/shadowsocksr/userapiconfig.py
 #INstall Success
 read -t 20 -p "输入与您主机绑定的域名(请在20秒内输入，超时将跳过本步骤.默认填入本机IP): " ipname
 if [[ -z ${ipname} ]];then
@@ -366,7 +365,7 @@ if [[ -e /etc/sysconfig/iptables-config ]];then
                 sed -i 's/IPTABLES_MODULES_UNLOAD="yes"/IPTABLES_MODULES_UNLOAD="no"/g' /etc/sysconfig/iptables-config
                 echo "安装完成，准备重启"
                 sleep 3s
-             
+                
         fi
 fi
 bash /usr/local/SSR-Bash-Python/self-check.sh
@@ -376,6 +375,5 @@ if [[ ${check} != "yes" ]] ;then
 fi
 echo '原作者已经停止本脚本更新，此版本为作者删除项目前最后一个版本魔改而来'
 echo '不喜勿喷!'
-echo '谨慎使用！仅供研究！'
 echo '谨慎使用！仅供研究！'
 echo '谨慎使用！仅供研究！'
