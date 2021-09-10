@@ -167,8 +167,8 @@ fi
 #Show
 echo "输入数字选择功能："
 echo ""
-echo "1.检查更新"
-echo "2.切换到普通版"
+echo "1.程序自检"
+echo "2.程序自检"
 echo "3.程序自检"
 echo "4.卸载程序"
 echo "5.备份配置"
@@ -184,20 +184,10 @@ while :; do echo
 done
 
 if [[ $choice == 1 ]];then
-        updateme
+	bash /usr/local/SSR-Bash-Python/self-check.sh
 fi
 if [[ $choice == 2 ]];then
-	echo "切换到普通版之后你将无法使用一些功能"
-	sumdc
-	if [[ "$sv" == "$solve" ]];then
-		bash /usr/local/SSR-Bash-Python/install.sh
-		sleep 3s
-		clear
-		ssr || exit 0
-	else
-		echo "计算错误，正确结果为$solve"
-		bash /usr/local/SSR-Bash-Python/self.sh
-	fi
+	bash /usr/local/SSR-Bash-Python/self-check.sh
 fi
 if [[ $choice == 3 ]];then
 	bash /usr/local/SSR-Bash-Python/self-check.sh
