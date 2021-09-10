@@ -89,7 +89,7 @@ if [[ $choice == 3 ]];then
 fi
 
 if [[ $choice == 4 ]];then
-	bash /usr/local/SSR-Bash-Python/dev.sh
+	bash /usr/local/SSR-Bash-Python/self.sh
 fi
 
 if [[ $choice == 5 ]];then
