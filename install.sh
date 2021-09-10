@@ -141,7 +141,7 @@ else
 #    fi
 fi
 cd /usr/local
-git clone https://github.com/Readour/shadowsocksr.git
+git clone https://github.com/shadowsocksr-backup/shadowsocksr
 cd ./shadowsocksr
 git checkout manyuser
 git pull
@@ -173,14 +173,15 @@ if [ -e /usr/local/bin/ssr ];then
 		exit 0
 	fi
     if [[ ! $yn == n ]];then
-        echo "你是否为其它版本迁移而来？（Y/N）"
-        read -t 2 -n 1 yn
+        if [[ ! -e /usr/local/SSR-Bash-Python/version.txt ]];then
+        	yn="y"
+        fi
     fi
     if [[ ${yn} == [yY] ]];then
         mv /usr/local/shadowsocksr/mudb.json /usr/local/mudb.json
         rm -rf /usr/local/shadowsocksr
         cd /usr/local
-        git clone https://github.com/Readour/shadowsocksr.git
+        git clone https://github.com/shadowsocksr-backup/shadowsocksr
         if [[ $1 == develop ]];then
             cd ./shadowsocksr
             git checkout stack/dev
@@ -209,7 +210,6 @@ if [[ -d /usr/local/SSR-Bash-Python ]];then
         rm -rf /usr/local/SSR-Bash-Python
         cd /usr/local
         git clone https://github.com/scssw/SSR-Bash-Python.git
-        mv AR-B-P-B SSR-Bash-Python
     fi
     cd /usr/local/SSR-Bash-Python
     git checkout master
@@ -221,13 +221,12 @@ if [[ -d /usr/local/SSR-Bash-Python ]];then
 else
     cd /usr/local
     git clone https://github.com/scssw/SSR-Bash-Python.git
-    cd AR-B-P-B
+    cd SSR-Bash-Python
     git checkout master
     if [[ $1 == "develop" ]];then
         git checkout develop
     fi
     cd ..
-    mv AR-B-P-B SSR-Bash-Python
     bashinstall="no"
 fi
 cd /usr/local/shadowsocksr
@@ -317,7 +316,7 @@ fi
 nowip=$(grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /usr/local/shadowsocksr/userapiconfig.py)
 sed -i "s/sspanelv2/mudbjson/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/UPDATE_TIME = 60/UPDATE_TIME = 10/g" /usr/local/shadowsocksr/userapiconfig.py
-sed -i "s/SERVER_PUB_ADDR = '$(nowip)'/SERVER_PUB_ADDR = '$(wget -qO- -t1 -T2 ipinfo.io/ip)'/" /usr/local/shadowsocksr/userapiconfig.py
+sed -i "s/SERVER_PUB_ADDR = '${nowip}'/SERVER_PUB_ADDR = '$(wget -qO- -t1 -T2 ipinfo.io/ip)'/" /usr/local/shadowsocksr/userapiconfig.py
 #INstall Success
 read -t 20 -p "输入与您主机绑定的域名(请在20秒内输入，超时将跳过本步骤.默认填入本机IP): " ipname
 if [[ -z ${ipname} ]];then
@@ -365,7 +364,7 @@ if [[ -e /etc/sysconfig/iptables-config ]];then
                 sed -i 's/IPTABLES_MODULES_UNLOAD="yes"/IPTABLES_MODULES_UNLOAD="no"/g' /etc/sysconfig/iptables-config
                 echo "安装完成，准备重启"
                 sleep 3s
-                
+         
         fi
 fi
 bash /usr/local/SSR-Bash-Python/self-check.sh
@@ -377,3 +376,5 @@ echo '原作者已经停止本脚本更新，此版本为作者删除项目前�
 echo '不喜勿喷!'
 echo '谨慎使用！仅供研究！'
 echo '谨慎使用！仅供研究！'
+echo '谨慎使用！仅供研究！'
+
