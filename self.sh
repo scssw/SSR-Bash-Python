@@ -167,9 +167,9 @@ fi
 #Show
 echo "输入数字选择功能："
 echo ""
-echo "1.程序自检"
-echo "2.程序自检"
-echo "3.程序自检"
+echo "1.备份配置"
+echo "2.备份配置"
+echo "3.备份配置"
 echo "4.卸载程序"
 echo "5.备份配置"
 echo "6.还原配置"
@@ -184,14 +184,32 @@ while :; do echo
 done
 
 if [[ $choice == 1 ]];then
-	bash /usr/local/SSR-Bash-Python/self-check.sh
-fi
+	if [[ ! -e ${HOME}/backup/ssr-conf.tar.gz ]];then
+		backup
+	else
+		cd ${HOME}/backup
+		mv ./ssr-conf.tar.gz ./ssr-conf-`date +%Y-%m-%d_%H:%M:%S`.tar.gz
+		backup
+	fi
+	bash /usr/local/SSR-Bash-Python/self.sh
 if [[ $choice == 2 ]];then
-	bash /usr/local/SSR-Bash-Python/self-check.sh
-fi
+	if [[ ! -e ${HOME}/backup/ssr-conf.tar.gz ]];then
+		backup
+	else
+		cd ${HOME}/backup
+		mv ./ssr-conf.tar.gz ./ssr-conf-`date +%Y-%m-%d_%H:%M:%S`.tar.gz
+		backup
+	fi
+	bash /usr/local/SSR-Bash-Python/self.sh
 if [[ $choice == 3 ]];then
-	bash /usr/local/SSR-Bash-Python/self-check.sh
-fi
+	if [[ ! -e ${HOME}/backup/ssr-conf.tar.gz ]];then
+		backup
+	else
+		cd ${HOME}/backup
+		mv ./ssr-conf.tar.gz ./ssr-conf-`date +%Y-%m-%d_%H:%M:%S`.tar.gz
+		backup
+	fi
+	bash /usr/local/SSR-Bash-Python/self.sh
 if [[ $choice == 4 ]];then
 	echo "你在做什么？你真的这么狠心吗？"
 	sumdc
