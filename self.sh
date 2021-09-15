@@ -167,10 +167,6 @@ fi
 #Show
 echo "输入数字选择功能："
 echo ""
-echo "1.备份配置"
-echo "2.备份配置"
-echo "3.备份配置"
-echo "4.卸载程序"
 echo "5.备份配置"
 echo "6.还原配置"
 while :; do echo
@@ -183,44 +179,7 @@ while :; do echo
 	fi
 done
 
-if [[ $choice == 1 ]];then
-	if [[ ! -e ${HOME}/backup/ssr-conf.tar.gz ]];then
-		backup
-	else
-		cd ${HOME}/backup
-		mv ./ssr-conf.tar.gz ./ssr-conf-`date +%Y-%m-%d_%H:%M:%S`.tar.gz
-		backup
-	fi
-	bash /usr/local/SSR-Bash-Python/self.sh
-if [[ $choice == 2 ]];then
-	if [[ ! -e ${HOME}/backup/ssr-conf.tar.gz ]];then
-		backup
-	else
-		cd ${HOME}/backup
-		mv ./ssr-conf.tar.gz ./ssr-conf-`date +%Y-%m-%d_%H:%M:%S`.tar.gz
-		backup
-	fi
-	bash /usr/local/SSR-Bash-Python/self.sh
-if [[ $choice == 3 ]];then
-	if [[ ! -e ${HOME}/backup/ssr-conf.tar.gz ]];then
-		backup
-	else
-		cd ${HOME}/backup
-		mv ./ssr-conf.tar.gz ./ssr-conf-`date +%Y-%m-%d_%H:%M:%S`.tar.gz
-		backup
-	fi
-	bash /usr/local/SSR-Bash-Python/self.sh
-if [[ $choice == 4 ]];then
-	echo "你在做什么？你真的这么狠心吗？"
-	sumdc
-	if [[ "$sv" == "$solve" ]];then
-		bash /usr/local/SSR-Bash-Python/install.sh uninstall
-		exit 0
-	else
-		echo "计算错误，正确结果为$solve"
-		bash /usr/local/SSR-Bash-Python/self.sh
-	fi
-fi
+
 if [[ $choice == 5 ]];then
 	if [[ ! -e ${HOME}/backup/ssr-conf.tar.gz ]];then
 		backup
