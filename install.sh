@@ -209,7 +209,7 @@ if [[ -d /usr/local/SSR-Bash-Python ]];then
     if [[ $yn == [yY] ]];then
         rm -rf /usr/local/SSR-Bash-Python
         cd /usr/local
-        git clone https://github.com/scssw/SSR-Bash-lao.git
+        git clone https://github.com/scssw/SSR-Bash-Python.git
     fi
     cd /usr/local/SSR-Bash-Python
     git checkout master
@@ -220,7 +220,7 @@ if [[ -d /usr/local/SSR-Bash-Python ]];then
     fi
 else
     cd /usr/local
-    git clone https://github.com/scssw/SSR-Bash-lao.git
+    git clone https://github.com/scssw/SSR-Bash-Python.git
     cd SSR-Bash-Python
     git checkout master
     if [[ $1 == "develop" ]];then
@@ -305,10 +305,10 @@ fi
 fi
 #Install SSR-Bash Background
 if [[ $1 == "develop" ]];then
-	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/scssw/SSR-Bash-lao/master/ssr
+	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/scssw/SSR-Bash-Python/master/ssr
 	chmod +x /usr/local/bin/ssr
 else
-	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/scssw/SSR-Bash-lao/master/ssr
+	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/scssw/SSR-Bash-Python/master/ssr
 	chmod +x /usr/local/bin/ssr
 fi
 
@@ -318,7 +318,7 @@ sed -i "s/sspanelv2/mudbjson/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/UPDATE_TIME = 60/UPDATE_TIME = 10/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/SERVER_PUB_ADDR = '${nowip}'/SERVER_PUB_ADDR = '$(wget -qO- -t1 -T2 ipinfo.io/ip)'/" /usr/local/shadowsocksr/userapiconfig.py
 #INstall Success
-read -t 20 -p "输入与您主机绑定的域名(请在20秒内输入，超时将跳过本步骤.默认填入本机IP): " ipname
+read -t 20 -p "输入与您主机绑定的域名(请在20秒内输入，超时将哈哈哈跳过本步骤.默认填入本机IP): " ipname
 if [[ -z ${ipname} ]];then
     ipname=$(wget -qO- -t1 -T2 ipinfo.io/ip)
 fi
