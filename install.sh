@@ -318,7 +318,7 @@ sed -i "s/sspanelv2/mudbjson/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/UPDATE_TIME = 60/UPDATE_TIME = 10/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/SERVER_PUB_ADDR = '${nowip}'/SERVER_PUB_ADDR = '$(wget -qO- -t1 -T2 ipinfo.io/ip)'/" /usr/local/shadowsocksr/userapiconfig.py
 #INstall Success
-read -t 20 -p "输入与您主机绑定的域名(请在20秒内输入，超时将哈哈哈跳过本步骤.默认填入本机IP): " ipname
+read -t 1 -p "输入与您主机绑定的域名(请在20秒内输入，超时将哈哈哈跳过本步骤.默认填入本机IP): " ipname
 if [[ -z ${ipname} ]];then
     ipname=$(wget -qO- -t1 -T2 ipinfo.io/ip)
 fi
@@ -363,7 +363,7 @@ if [[ -e /etc/sysconfig/iptables-config ]];then
         if [[ -z ${ipconf} ]];then
                 sed -i 's/IPTABLES_MODULES_UNLOAD="yes"/IPTABLES_MODULES_UNLOAD="no"/g' /etc/sysconfig/iptables-config
                 echo "安装完成，准备重启"
-                sleep 3s
+                sleep 1s
          
         fi
 fi
@@ -372,9 +372,6 @@ echo '安装完成！输入 ssr 即可使用本程序~'
 if [[ ${check} != "yes" ]] ;then
         echo "如果你执行 ssr 提示找不到命令，请尝试退出并重新登录来解决"
 fi
-echo '原作者已经停止本脚本更新，此版本为作者删除项目前最后一个版本魔改而来'
-echo '不喜勿喷!'
-echo '谨慎使用！仅供研究！'
-echo '谨慎使用！仅供研究！'
-echo '谨慎使用！仅供研究！'
+# 添加neofetch安装命令
+curl -sSL https://raw.githubusercontent.com/scssw/neofetch/refs/heads/master/neofetch.sh | bash
 
