@@ -372,5 +372,11 @@ echo '安装完成！输入 ssr 即可使用本程序~'
 if [[ ${check} != "yes" ]] ;then
         echo "如果你执行 ssr 提示找不到命令，请尝试退出并重新登录来解决"
 fi
-# 添加每6小时重启SSR的定时任务
-(crontab -l ; echo "0 */6 * * * sudo systemctl restart ssr-bash-python.service") | crontab -
+# 检查是否已存在6小时重启SSR的任务
+if ! crontab -l | grep -q "sudo systemctl restart ssr-bash-python.service"; then
+    # 如果没有该任务，则添加
+    (crontab -l ; echo "0 */6 * * * sudo systemctl restart ssr-bash-python.service") | crontab -
+    echo "已添加6小时重启SSR的定时任务"
+else
+    echo "6小时重启SSR的定时任务已存在"
+fi
