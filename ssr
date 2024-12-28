@@ -46,16 +46,12 @@ else
     fi
 fi
 }
-# 获取流量信息
-traffic_info=$(vnstat -m | grep "eth0" | awk 'NR==2 {print "已用流量：" $3 " " $4 " / 已上传：" $5 " " $6 " / 总流量：" $7 " " $8}')
-if [ -z "$traffic_info" ]; then
-    traffic_info="无法获取流量数据，请检查 vnstat 配置"
-fi
+
 echo
 echo "*******************"
 echo ""
 echo -e "欢迎使用 AR (Python Base) Beta\n"
-echo -e "echo "流量信息：$traffic_info""
+echo -e "霉运退散"
 echo "输入数字选择功能："
 echo ""
 echo "1.服务器控制"
