@@ -128,37 +128,29 @@ while :; do echo
 	fi
 done
 
-if [[ $ux == 2 ]]; then
-    while :; do echo
-        read -p "是否兼容原版协议（y/n，默认为n）： " ifprotocolcompatible
-        if [[ -z $ifprotocolcompatible ]]; then
-            ifprotocolcompatible="n"
-        fi
-        if [[ ! $ifprotocolcompatible =~ ^[y,n]$ ]]; then
-            echo "输入错误! 请输入y或者n!"
-        else
-            break
-        fi
-    done
+if [[ $ux == 2 ]];then
+	while :; do echo
+		read -p "是否兼容原版协议（y/n）： " ifprotocolcompatible
+		if [[ ! $ifprotocolcompatible =~ ^[y,n]$ ]]; then
+			echo "输入错误! 请输入y或者n!"
+		else
+			break
+		fi
+	done
 fi
 
 if [[ ! $ux =~ ^[1,5]$ ]]; then
-    if [[ $ifprotocolcompatible == "n" ]]; then
-        while :; do echo
-            read -p "请输入连接数限制(建议最少 2个): " uparam
-            if [[ ! $uparam =~ ^[0-9]+$ ]]; then
-                echo "输入错误! 请输入正确的数字!"
-            else
-                break
-            fi
-        done
-        # 在这里将 $uparam 应用到服务端设置
-        echo "连接数限制设置为 $uparam"
-    else
-        echo "已选择兼容原版协议，跳过连接数限制设置。"
-    fi
+	if [[ ! $ifprotocolcompatible == "y" ]]; then
+		while :; do echo 
+			read -p "请输入连接数限制(建议最少 2个): " uparam
+			if [[ ! $uparam =~ ^(-?|\+?)[0-9]+(\.?[0-9]+)?$ ]]; then
+				echo "输入错误! 请输入正确的数字!"
+			else
+				break
+			fi
+		done
+	fi
 fi
-
 
 
 echo "混淆方式"
