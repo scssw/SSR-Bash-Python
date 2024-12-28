@@ -389,10 +389,12 @@ else
     echo "每小时备份的定时任务已存在"
 fi
 # 检查是否已存在每小时删除的任务
-if ! crontab -l | grep -q "/usr/local/SSR-Bash-Python/timelimit.sh"; then
-    # 如果没有该任务，则添加
-    (crontab -l ; */30 * * * * sudo /bin/bash /usr/local/SSR-Bash-Python/timelimit.sh") | crontab -
-    echo "已添加每小时删除的定时任务"
-else
-    echo "每小时删除的定时任务已存在"
+if crontab -l | grep -q "/usr/local/SSR-Bash-Python/timelimit.sh"; then
+    # 如果存在任务，先删除
+    crontab -l | grep -v "/usr/local/SSR-Bash-Python/timelimit.sh" | crontab -
 fi
+
+# 添加新的任务
+(crontab -l ; echo "*/30 * * * * sudo /bin/bash /usr/local/SSR-Bash-Python/timelimit.sh") | crontab -
+echo "已添加或更新为每30分钟执行的定时任务"
+
