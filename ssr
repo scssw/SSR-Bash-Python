@@ -89,8 +89,9 @@ if [[ $choice == 3 ]];then
 fi
 
 if [[ $choice == 4 ]];then
+	servercheck
 	bash /usr/local/SSR-Bash-Python/server.sh
-fi
+fi	
 
 if [[ $choice == 5 ]];then
 	bash /usr/local/SSR-Bash-Python/self.sh
