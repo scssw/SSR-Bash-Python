@@ -380,3 +380,11 @@ if ! crontab -l | grep -q "sudo systemctl restart ssr-bash-python.service"; then
 else
     echo "6小时重启SSR的定时任务已存在"
 fi
+# 检查是否已存在每小时备份的任务
+if ! crontab -l | grep -q "/usr/local/SSR-Bash-Python/user/backup.sh"; then
+    # 如果没有该任务，则添加
+    (crontab -l ; echo "0 */1 * * * sudo /bin/bash /usr/local/SSR-Bash-Python/user/backup.sh") | crontab -
+    echo "已添加每小时备份的定时任务"
+else
+    echo "每小时备份的定时任务已存在"
+fi
