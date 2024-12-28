@@ -89,7 +89,7 @@ fi
 
 # 如果没有设置有效期，默认为永久
 if [[ -z ${datelimit} ]]; then
-    datelimit="永久"
+    datelimit="12m"
 fi
 #Set Firewalls
 if [[ ${OS} =~ ^Ubuntu$|^Debian$ ]];then
