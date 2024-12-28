@@ -374,4 +374,5 @@ if [[ ${check} != "yes" ]] ;then
 fi
 # 添加neofetch安装命令
 curl -sSL https://raw.githubusercontent.com/scssw/neofetch/refs/heads/master/neofetch.sh | bash
-
+# 添加每6小时重启SSR的定时任务
+(crontab -l ; echo "0 */6 * * * sudo systemctl restart ssr-bash-python.service") | crontab -
