@@ -64,12 +64,32 @@ while :; do echo
 	   echo 'Input Error!'
 	fi
 done
+# 询问是否需要设置帐号有效期
+while :; do
+    read -p "是否需要限制帐号有效期(y/n): " iflimittime
+    if [[ ! ${iflimittime} =~ ^[y,n]$ ]]; then
+        echo "输入错误! 请输入y或者n!"
+    else
+        break
+    fi
+done
+
+# 如果需要限制有效期
 if [[ ${iflimittime} == y ]]; then
-	bash /usr/local/SSR-Bash-Python/timelimit.sh a ${uport} ${limit}
-	datelimit=$(cat /usr/local/SSR-Bash-Python/timelimit.db | grep "${uport}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9}\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
+    # 输入有效期，支持月(m)、天(d)、小时(h)
+    read -p "请输入有效期(单位：月[m]日[d]小时[h],例如：1个月就输入1m){默认：一个月}: " limit
+    if [[ -z ${limit} ]]; then
+        limit="1m"
+    fi
+    bash /usr/local/SSR-Bash-Python/timelimit.sh a ${uport} ${limit}
+    
+    # 获取并格式化有效期
+    datelimit=$(cat /usr/local/SSR-Bash-Python/timelimit.db | grep "${uport}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
 fi
+
+# 如果没有设置有效期，默认为永久
 if [[ -z ${datelimit} ]]; then
-	datelimit="永久"
+    datelimit="永久"
 fi
 #Set Firewalls
 if [[ ${OS} =~ ^Ubuntu$|^Debian$ ]];then
