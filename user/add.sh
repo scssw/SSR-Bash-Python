@@ -128,29 +128,35 @@ while :; do echo
 	fi
 done
 
-if [[ $ux == 2 ]];then
-	while :; do echo
-		read -p "是否兼容原版协议（y/n）： " ifprotocolcompatible
-		if [[ ! $ifprotocolcompatible =~ ^[y,n]$ ]]; then
-			echo "输入错误! 请输入y或者n!"
-		else
-			break
-		fi
-	done
+# 设置默认值
+ifprotocolcompatible="n"  # 默认是否兼容原版协议
+
+# 检查 ux 值并根据需要提示输入
+if [[ $ux == 2 || -z $ifprotocolcompatible ]]; then
+    while :; do echo
+        read -p "是否兼容原版协议（y/n）： " ifprotocolcompatible
+        if [[ ! $ifprotocolcompatible =~ ^[y,n]$ ]]; then
+            echo "输入错误! 请输入y或者n!"
+        else
+            break
+        fi
+    done
 fi
 
+# 检查 ux 的值是否符合条件
 if [[ ! $ux =~ ^[1,5]$ ]]; then
-	if [[ ! $ifprotocolcompatible == "y" ]]; then
-		while :; do echo 
-			read -p "请输入连接数限制(建议最少 2个): " uparam
-			if [[ ! $uparam =~ ^(-?|\+?)[0-9]+(\.?[0-9]+)?$ ]]; then
-				echo "输入错误! 请输入正确的数字!"
-			else
-				break
-			fi
-		done
-	fi
+    if [[ $ifprotocolcompatible != "y" ]]; then
+        while :; do echo 
+            read -p "请输入连接数限制(建议最少 2个): " uparam
+            if [[ ! $uparam =~ ^(-?|\+?)[0-9]+(\.?[0-9]+)?$ ]]; then
+                echo "输入错误! 请输入正确的数字!"
+            else
+                break
+            fi
+        done
+    fi
 fi
+
 
 echo "混淆方式"
 echo '1.plain'
