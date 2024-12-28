@@ -51,7 +51,7 @@ echo
 echo "*******************"
 echo ""
 echo -e "欢迎使用 AR (Python Base) Beta\n"
-echo -e "霉运退散"
+echo -e "每日一言：霉运退散"
 echo "输入数字选择功能："
 echo ""
 echo "1.服务器控制"
