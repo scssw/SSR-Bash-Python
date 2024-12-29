@@ -65,14 +65,10 @@ while :; do echo
 	fi
 done
 # 询问是否需要设置帐号有效期
-while :; do
-    read -p "是否需要限制帐号有效期(y/n): " iflimittime
-    if [[ ! ${iflimittime} =~ ^[y,n]$ ]]; then
-        echo "输入错误! 请输入y或者n!"
-    else
-        break
-    fi
-done
+# 直接设置默认值
+iflimittime="y"
+echo "是否需要限制帐号有效期(y/n) [默认: y]: y"
+# 后续代码继续执行
 
 # 如果需要限制有效期
 if [[ ${iflimittime} == y ]]; then
