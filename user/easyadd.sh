@@ -69,7 +69,6 @@ done
 iflimittime="y"
 echo "是否需要限制帐号有效期(y/n) [默认: y]: y"
 # 后续代码继续执行
-
 # 如果需要限制有效期
 if [[ ${iflimittime} == y ]]; then
     # 输入有效期，支持月(m)、天(d)、小时(h)
