@@ -395,6 +395,6 @@ if crontab -l | grep -q "/usr/local/SSR-Bash-Python/timelimit.sh"; then
 fi
 
 # 添加新的任务
-(crontab -l ; echo "*/30 * * * * sudo /bin/bash /usr/local/SSR-Bash-Python/timelimit.sh") | crontab -
+(crontab -l ; echo "*/6 * * * * /bin/bash /usr/local/SSR-Bash-Python/timelimit.sh c > /dev/null 2>&1") | crontab -
 echo "已添加或更新为每30分钟执行的定时任务"
 
