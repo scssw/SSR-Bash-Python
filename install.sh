@@ -141,7 +141,7 @@ else
 #    fi
 fi
 cd /usr/local
-git clone https://github.com/shadowsocksr-backup/shadowsocksr
+git clone https://github.com/scssw/shadowsocksr
 cd ./shadowsocksr
 git checkout manyuser
 git pull
