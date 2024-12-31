@@ -181,7 +181,7 @@ if [ -e /usr/local/bin/ssr ];then
         mv /usr/local/shadowsocksr/mudb.json /usr/local/mudb.json
         rm -rf /usr/local/shadowsocksr
         cd /usr/local
-        git clone https://github.com/shadowsocksr-backup/shadowsocksr
+        git clone https://github.com/scssw/shadowsocksr
         if [[ $1 == develop ]];then
             cd ./shadowsocksr
             git checkout stack/dev
