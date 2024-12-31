@@ -318,7 +318,7 @@ sed -i "s/sspanelv2/mudbjson/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/UPDATE_TIME = 60/UPDATE_TIME = 10/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/SERVER_PUB_ADDR = '${nowip}'/SERVER_PUB_ADDR = '$(wget -qO- -t1 -T2 ipinfo.io/ip)'/" /usr/local/shadowsocksr/userapiconfig.py
 #INstall Success
-read -t 1 -p "输入与您主机绑定的域名(请在20秒内输入，超时将哈哈哈跳过本步骤.默认填入本机IP): " ipname
+read -t 20 -p "输入与您主机绑定的域名(请在20秒内输入，超时将哈哈哈跳过本步骤.默认填入本机IP): " ipname
 if [[ -z ${ipname} ]];then
     ipname=$(wget -qO- -t1 -T2 ipinfo.io/ip)
 fi
@@ -362,7 +362,7 @@ if [[ -e /etc/sysconfig/iptables-config ]];then
         ipconf=$(cat /etc/sysconfig/iptables-config | grep 'IPTABLES_MODULES_UNLOAD="no"')
         if [[ -z ${ipconf} ]];then
                 sed -i 's/IPTABLES_MODULES_UNLOAD="yes"/IPTABLES_MODULES_UNLOAD="no"/g' /etc/sysconfig/iptables-config
-                echo "安装完成，准备重启"
+                echo "安装完成，跳过重启"
                 sleep 1s
          
         fi
