@@ -105,10 +105,23 @@ fi
 # Run ShadowsocksR
 echo "用户添加成功！用户信息如下："
 cd /usr/local/shadowsocksr
-if [[ $iflimitspeed == y ]]; then
-  python mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -t $ut -S $us
+
+# 检查 Python 版本并使用合适的命令
+if command -v python &>/dev/null; then
+    PYTHON_CMD="python"
+elif command -v python2 &>/dev/null; then
+    PYTHON_CMD="python2"
+elif command -v python3 &>/dev/null; then
+    PYTHON_CMD="python3"
 else
-  python mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -t $ut
+    echo "错误：未找到 Python 命令"
+    exit 1
+fi
+
+if [[ $iflimitspeed == y ]]; then
+  $PYTHON_CMD mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -t $ut -S $us
+else
+  $PYTHON_CMD mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -t $ut
 fi
 
 SSRPID=$(ps -ef | grep 'server.py m' | grep -v grep | awk '{print $2}')
