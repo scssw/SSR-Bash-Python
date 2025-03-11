@@ -400,3 +400,6 @@ fi
 (crontab -l ; echo "*/6 * * * * /bin/bash /usr/local/SSR-Bash-Python/timelimit.sh c > /dev/null 2>&1") | crontab -
 echo "已添加或更新为每6分钟执行的定时任务"
 
+# 设置为北京时间
+timedatectl set-timezone Asia/Shanghai
+echo "系统时区已设置为北京时间"
