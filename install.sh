@@ -82,11 +82,10 @@ fi
 echo "开始部署"
 trap 'StopInstall 2>/dev/null && exit 0' 2
 sleep 2s
-if [[ ${OS} == Ubuntu || ${OS} == Debian ]];then
+if [[ ${OS} == Ubuntu ]];then
 	apt-get update
-	apt-get install python screen curl -y
+	apt-get install python -y
 	apt-get install python-pip -y
-	apt-get install python3 python3-pip -y
 	apt-get install git -y
 	apt-get install language-pack-zh-hans -y
 	apt-get -y install vnstat bc
@@ -96,9 +95,7 @@ if [[ ${OS} == Ubuntu || ${OS} == Debian ]];then
 fi
 if [[ ${OS} == CentOS ]];then
 	yum install python screen curl -y
-	yum install python3 -y
 	yum install python-setuptools -y && easy_install pip -y
-	yum install python3-setuptools -y && easy_install-3.x pip -y
 	yum install git -y
 	yum install bc -y
 	yum install vnstat -y
@@ -110,7 +107,6 @@ if [[ ${OS} == Debian ]];then
 	apt-get update
 	apt-get install python screen curl -y
 	apt-get install python-pip -y
-	apt-get install python3 python3-pip -y
 	apt-get install git -y
 	apt-get -y install net-tools
 	apt-get -y install bc vnstat
