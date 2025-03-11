@@ -112,6 +112,8 @@ if [[ ${OS} == Debian ]];then
 	apt-get -y install bc vnstat
     apt-get install build-essential -y
     apt-get install cron -y
+    # 安装iptables
+    apt-get install -y iptables
 fi
 if [[ $? != 0 ]];then
     echo "安装失败，请稍候重试！"
