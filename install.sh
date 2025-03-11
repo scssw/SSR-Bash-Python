@@ -25,24 +25,25 @@ elif [ -n "$(grep 'Amazon Linux AMI release' /etc/issue)" -o -e /etc/system-rele
     CentOS_RHEL_version=6
 elif [ -n "$(grep bian /etc/issue)" -o "$(lsb_release -is 2>/dev/null)" == 'Debian' ];then
     OS=Debian
-    [ ! -e "$(which lsb_release)" ] && { apt-get -y update; apt-get -y install lsb-release -q; }
+    [ ! -e "$(which lsb_release)" ] && { apt-get -y update; apt-get -y install lsb-release; clear; }
     Debian_version=$(lsb_release -sr | awk -F. '{print $1}')
 elif [ -n "$(grep Deepin /etc/issue)" -o "$(lsb_release -is 2>/dev/null)" == 'Deepin' ];then
     OS=Debian
-    [ ! -e "$(which lsb_release)" ] && { apt-get -y update; apt-get -y install lsb-release -q; }
+    [ ! -e "$(which lsb_release)" ] && { apt-get -y update; apt-get -y install lsb-release; clear; }
     Debian_version=$(lsb_release -sr | awk -F. '{print $1}')
 elif [ -n "$(grep Ubuntu /etc/issue)" -o "$(lsb_release -is 2>/dev/null)" == 'Ubuntu' -o -n "$(grep 'Linux Mint' /etc/issue)" ];then
     OS=Ubuntu
-    [ ! -e "$(which lsb_release)" ] && { apt-get -y update; apt-get -y install lsb-release -q; }
+    [ ! -e "$(which lsb_release)" ] && { apt-get -y update; apt-get -y install lsb-release; clear; }
     Ubuntu_version=$(lsb_release -sr | awk -F. '{print $1}')
     [ -n "$(grep 'Linux Mint 18' /etc/issue)" ] && Ubuntu_version=16
 else
-    echo "不支持此操作系统，请联系作者！"
+    echo "Does not support this OS, Please contact the author! "
     kill -9 $$
 fi
 
 StopInstall(){
     echo -e "\n安装中断,开始清理文件!"
+    sleep 1s
     rm -rf /usr/local/bin/ssr
     rm -rf /usr/local/SSR-Bash-Python
     rm -rf /usr/local/shadowsocksr
@@ -69,10 +70,10 @@ StopInstall(){
     echo "清理完成!"
 }
 
-# 获取当前目录
+#Get Current Directory
 workdir=$(pwd)
 
-# 安装基本工具
+#Install Basic Tools
 if [ ! -e /usr/local/bin/ssr ];then
 if [[ $1 == "uninstall" ]];then
 	echo "你在开玩笑吗？你都没有安装怎么卸载呀！"
@@ -80,39 +81,43 @@ if [[ $1 == "uninstall" ]];then
 fi
 echo "开始部署"
 trap 'StopInstall 2>/dev/null && exit 0' 2
-
-# 安装软件包（优化：使用-q减少输出，并行安装多个包）
+sleep 2s
 if [[ ${OS} == Ubuntu ]];then
-	echo "正在安装依赖..."
-	apt-get update -q
-	apt-get install -y -q python python-pip git language-pack-zh-hans vnstat bc net-tools build-essential screen curl cron
+	apt-get update
+	apt-get install python -y
+	apt-get install python-pip -y
+	apt-get install git -y
+	apt-get install language-pack-zh-hans -y
+	apt-get -y install vnstat bc
+    apt-get -y install net-tools
+    apt-get install build-essential screen curl -y
+    apt-get install cron -y
 fi
 if [[ ${OS} == CentOS ]];then
-	echo "正在安装依赖..."
-	yum -q -y install python screen curl python-setuptools git bc vnstat net-tools vixie-cron crontabs
-	yum -q -y groupinstall "Development Tools" 
-	yum -q -y install python-setuptools && easy_install pip -q
+	yum install python screen curl -y
+	yum install python-setuptools -y && easy_install pip -y
+	yum install git -y
+	yum install bc -y
+	yum install vnstat -y
+	yum install net-tools -y
+    yum groupinstall "Development Tools" -y
+    yum install vixie-cron crontabs -y
 fi
 if [[ ${OS} == Debian ]];then
-	echo "正在安装依赖..."
-	apt-get update -q
-	apt-get install -y -q python screen curl python-pip git net-tools bc vnstat build-essential cron
-	
-	# 特别为Debian 11添加iptables支持检测和安装
-	if [[ ${Debian_version} -ge 11 ]]; then
-		if ! command -v iptables &> /dev/null; then
-			echo "检测到Debian 11或更高版本，且没有安装iptables，正在安装..."
-			apt-get install -y -q iptables iptables-persistent
-		fi
-	fi
+	apt-get update
+	apt-get install python screen curl -y
+	apt-get install python-pip -y
+	apt-get install git -y
+	apt-get -y install net-tools
+	apt-get -y install bc vnstat
+    apt-get install build-essential -y
+    apt-get install cron -y
 fi
-
 if [[ $? != 0 ]];then
     echo "安装失败，请稍候重试！"
     exit 1 
 fi
-
-# 安装Libsodium（优化：减少解压的冗长输出）
+#Install Libsodium
 libsodiumfilea="/usr/local/lib/libsodium.so"
 libsodiumfileb="/usr/lib/libsodium.so"
 if [[ -e ${libsodiumfilea} ]];then
@@ -120,34 +125,36 @@ if [[ -e ${libsodiumfilea} ]];then
 elif [[ -e ${libsodiumfileb} ]];then
     echo "libsodium已安装!"
 else
-    echo "安装libsodium..."
     cd $workdir
     export LIBSODIUM_VER=1.0.16
     wget -q https://github.com/jedisct1/libsodium/releases/download/${LIBSODIUM_VER}/libsodium-$LIBSODIUM_VER.tar.gz
-    tar xf libsodium-$LIBSODIUM_VER.tar.gz > /dev/null 2>&1
-    pushd libsodium-$LIBSODIUM_VER > /dev/null
-    ./configure --prefix=/usr > /dev/null 2>&1 && make -j$(nproc) > /dev/null 2>&1
-    make install > /dev/null 2>&1
-    popd > /dev/null
+    tar xvf libsodium-$LIBSODIUM_VER.tar.gz
+    pushd libsodium-$LIBSODIUM_VER
+    ./configure --prefix=/usr && make
+    make install
+    popd
     ldconfig
     cd $workdir && rm -rf libsodium-$LIBSODIUM_VER.tar.gz libsodium-$LIBSODIUM_VER
+#    if [[ ! -e ${libsodiumfile} ]];then
+#    	echo "libsodium安装失败 !"
+#    	exit 1
+#    fi
 fi
-
-# 克隆shadowsocksr仓库（优化：使用--depth=1减少下载数据量）
 cd /usr/local
-echo "克隆shadowsocksr仓库..."
-git clone --depth=1 https://github.com/scssw/shadowsocksr
+git clone https://github.com/scssw/shadowsocksr
 cd ./shadowsocksr
 git checkout manyuser
-if [ "$1" == "develop" ];then
+git pull
+if [ $1 == "develop" ];then
     git checkout stack/dev
 fi
 fi
 
-# 安装SSR和SSR-Bash
+#Install SSR and SSR-Bash
 if [ -e /usr/local/bin/ssr ];then
 	if [[ $1 == "uninstall" ]];then
 		echo "开始卸载"
+		sleep 1s
 		echo "删除:/usr/local/bin/ssr"
 		rm -f /usr/local/bin/ssr
 		echo "删除:/usr/local/SSR-Bash-Python"
@@ -161,6 +168,7 @@ if [ -e /usr/local/bin/ssr ];then
         sed -i "/timelimit.sh/d" ~/crontab.bak 1>/dev/null 2>&1
         crontab ~/crontab.bak 1>/dev/null 2>&1
         rm -rf ~/crontab.bak
+		sleep 1s
 		echo "卸载完成!!"
 		exit 0
 	fi
@@ -173,8 +181,7 @@ if [ -e /usr/local/bin/ssr ];then
         mv /usr/local/shadowsocksr/mudb.json /usr/local/mudb.json
         rm -rf /usr/local/shadowsocksr
         cd /usr/local
-        echo "更新shadowsocksr仓库..."
-        git clone --depth=1 https://github.com/scssw/shadowsocksr
+        git clone https://github.com/scssw/shadowsocksr
         if [[ $1 == develop ]];then
             cd ./shadowsocksr
             git checkout stack/dev
@@ -186,8 +193,10 @@ if [ -e /usr/local/bin/ssr ];then
         fi
     fi
 	echo "开始更新"
+	sleep 1s
 	echo "正在清理老版本"
 	rm -f /usr/local/bin/ssr
+	sleep 1s
 	echo "开始部署"
 	cd /usr/local/shadowsocksr
 	git pull
@@ -196,13 +205,11 @@ if [ -e /usr/local/bin/ssr ];then
         git checkout stack/dev
     fi
 fi
-
 if [[ -d /usr/local/SSR-Bash-Python ]];then
     if [[ $yn == [yY] ]];then
         rm -rf /usr/local/SSR-Bash-Python
         cd /usr/local
-        echo "更新SSR-Bash-Python仓库..."
-        git clone --depth=1 https://github.com/scssw/SSR-Bash-Python.git
+        git clone https://github.com/scssw/SSR-Bash-Python.git
     fi
     cd /usr/local/SSR-Bash-Python
     git checkout master
@@ -213,8 +220,7 @@ if [[ -d /usr/local/SSR-Bash-Python ]];then
     fi
 else
     cd /usr/local
-    echo "克隆SSR-Bash-Python仓库..."
-    git clone --depth=1 https://github.com/scssw/SSR-Bash-Python.git
+    git clone https://github.com/scssw/SSR-Bash-Python.git
     cd SSR-Bash-Python
     git checkout master
     if [[ $1 == "develop" ]];then
@@ -223,21 +229,19 @@ else
     cd ..
     bashinstall="no"
 fi
-
 cd /usr/local/shadowsocksr
 bash initcfg.sh
 if [[ ! -e /usr/bin/bc ]];then
 	if [[ ${OS} == CentOS ]];then
-		yum install bc -y -q
+		yum install bc -y
 	fi
 	if [[ ${OS} == Ubuntu || ${OS} == Debian ]];then
-		apt-get install bc -y -q
+		apt-get install bc -y
 	fi
 fi
-
 if [[ ${bashinstall} == "no" ]]; then
 
-# 开机自启
+#Start when boot
 if [[ ${OS} == Ubuntu || ${OS} == Debian ]];then
     cat >/etc/init.d/ssr-bash-python <<EOF
 #!/bin/sh
@@ -271,10 +275,10 @@ bash /usr/local/shadowsocksr/logrun.sh
     chmod +x /etc/rc.d/rc.local
 fi
 
-# 修改CentOS7防火墙
+#Change CentOS7 Firewall
 if [[ ${OS} == CentOS && $CentOS_RHEL_version == 7 ]];then
     systemctl stop firewalld.service
-    yum install iptables-services -y -q
+    yum install iptables-services -y
     sshport=$(netstat -nlp | grep sshd | awk '{print $4}' | awk -F : '{print $NF}' | sort -n | uniq)
     cat << EOF > /etc/sysconfig/iptables
 # sample configuration for iptables service
@@ -299,8 +303,7 @@ EOF
     systemctl disable firewalld.service
 fi
 fi
-
-# 安装SSR-Bash后台
+#Install SSR-Bash Background
 if [[ $1 == "develop" ]];then
 	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/scssw/SSR-Bash-Python/master/ssr
 	chmod +x /usr/local/bin/ssr
@@ -309,13 +312,13 @@ else
 	chmod +x /usr/local/bin/ssr
 fi
 
-# 修改ShadowsocksR API
+#Modify ShadowsocksR API
 nowip=$(grep -E -o "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" /usr/local/shadowsocksr/userapiconfig.py)
 sed -i "s/sspanelv2/mudbjson/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/UPDATE_TIME = 60/UPDATE_TIME = 10/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/SERVER_PUB_ADDR = '${nowip}'/SERVER_PUB_ADDR = '$(wget -qO- -t1 -T2 ipinfo.io/ip)'/" /usr/local/shadowsocksr/userapiconfig.py
-# 安装成功
-read -t 10 -p "输入与您主机绑定的域名(请在10秒内输入，超时将使用本机IP): " ipname
+#INstall Success
+read -t 20 -p "输入与您主机绑定的域名(请在20秒内输入，超时将哈哈哈跳过本步骤.默认填入本机IP): " ipname
 if [[ -z ${ipname} ]];then
     ipname=$(wget -qO- -t1 -T2 ipinfo.io/ip)
 fi
@@ -333,7 +336,7 @@ if [[ $1 == develop ]];then
             echo "服务已重启"
         fi
     else
-        read -t 5 -p "是否设置服务器自检，实验型功能！[Y/N]" yn
+        read -t 10 -p "是否设置服务器自检，实验型功能！[Y/N]" yn
         if [[ $yn == [yY] ]];then
         	cd /usr/local/SSR-Bash-Python
         	bash servercheck.sh conf
@@ -342,6 +345,8 @@ if [[ $1 == develop ]];then
         	if [[ -z ${PID} ]];then
             	echo "程序启动失败,请联系作者"
             fi
+        else
+        	echo "你居然拒绝了T.T"
         fi
     fi
     checkcron=$(crontab -l 2>/dev/null | grep "timelimit.sh")
@@ -358,6 +363,7 @@ if [[ -e /etc/sysconfig/iptables-config ]];then
         if [[ -z ${ipconf} ]];then
                 sed -i 's/IPTABLES_MODULES_UNLOAD="yes"/IPTABLES_MODULES_UNLOAD="no"/g' /etc/sysconfig/iptables-config
                 echo "安装完成，跳过重启"
+                sleep 1s
          
         fi
 fi
