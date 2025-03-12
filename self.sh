@@ -173,9 +173,10 @@ echo "3.程序自检"
 echo "4.卸载程序"
 echo "5.备份配置"
 echo "6.还原配置"
+echo "7.设置所有用户限速"
 while :; do echo
 	read -p "请选择： " choice
-	if [[ ! $choice =~ ^[1-6]$ ]]; then
+	if [[ ! $choice =~ ^[1-7]$ ]]; then
 		[ -z "$choice" ] && ssr && break
 		echo "输入错误! 请输入正确的数字!"
 	else
@@ -225,5 +226,17 @@ fi
 if [[ $choice == 6 ]];then
 	recover
 	bash /usr/local/SSR-Bash-Python/self.sh
+fi
+if [[ $choice == 7 ]];then
+	read -p "请输入限速值(单位：Mbps)：" speed_limit
+	if [[ ! $speed_limit =~ ^[0-9]+$ ]]; then
+		echo "输入错误！请输入数字！"
+		bash /usr/local/SSR-Bash-Python/self.sh
+	else
+		speed_limit_kbps=$(($speed_limit * 128))
+		python /usr/local/SSR-Bash-Python/speed.py $speed_limit_kbps
+		echo "已成功设置所有用户限速为 ${speed_limit} Mbps"
+		bash /usr/local/SSR-Bash-Python/self.sh
+	fi
 fi
 exit 0
