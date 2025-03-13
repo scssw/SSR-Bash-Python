@@ -167,46 +167,27 @@ fi
 #Show
 echo "输入数字选择功能："
 echo ""
-echo "1.检查更新"
-echo "2.切换到开发版"
-echo "3.程序自检"
 echo "4.卸载程序"
 echo "5.备份配置"
 echo "6.还原配置"
 echo "7.设置所有用户限速"
+echo "8.去除所有用户限速"
+echo "9.设置主机限速"
+echo "10.查看主机限速"
 while :; do echo
 	read -p "请选择： " choice
-	if [[ ! $choice =~ ^[1-7]$ ]]; then
+	if [[ ! $choice =~ ^([4-9]|10)$ ]]; then
 		[ -z "$choice" ] && ssr && break
 		echo "输入错误! 请输入正确的数字!"
 	else
 		break	
 	fi
 done
-if [[ $choice == 1 ]];then
-	updateme
-fi
-if [[ $choice == 2 ]];then
-	echo "切换到开发版之后你将面临一些奇怪的问题"
-	sumdc
-	if [[ "$sv" == "$solve" ]];then
-		wget -q -N --no-check-certificate https://raw.githubusercontent.com/Readour/AR-B-P-B/master/install.sh && bash install.sh develop
-		sleep 3s
-		clear
-		ssr || exit 0
-	else
-		echo "计算错误，正确结果为$solve"
-		bash /usr/local/SSR-Bash-Python/self.sh
-	fi
-fi
-if [[ $choice == 3 ]];then
-	bash /usr/local/SSR-Bash-Python/self-check.sh
-fi
 if [[ $choice == 4 ]];then
 	echo "你在做什么？你真的这么狠心吗？"
 	sumdc
 	if [[ "$sv" == "$solve" ]];then
-		wget -q -N --no-check-certificate https://raw.githubusercontent.com/Readour/AR-B-P-B/master/install.sh && bash install.sh uninstall
+		wget -q -N --no-check-certificate https://raw.githubusercontent.com/scssw/SSR-Bash-Python/master/install.sh  && bash install.sh uninstall
 		exit 0
 	else
 		echo "计算错误，正确结果为$solve"
@@ -238,5 +219,50 @@ if [[ $choice == 7 ]];then
 		echo "已成功设置所有用户限速为 ${speed_limit} Mbps"
 		bash /usr/local/SSR-Bash-Python/self.sh
 	fi
+fi
+if [[ $choice == 8 ]];then
+	python /usr/local/SSR-Bash-Python/speed.py 0
+	echo "已去除所有用户节点限速"
+	bash /usr/local/SSR-Bash-Python/self.sh
+fi
+if [[ $choice == 9 ]];then
+	read -p "请输入限速值(单位：Mbps)：" speed_limit
+	if [[ ! $speed_limit =~ ^[0-9]+$ ]]; then
+		echo "输入错误！请输入数字！"
+		bash /usr/local/SSR-Bash-Python/self.sh
+	else
+		# 获取主网卡名称
+		main_interface=$(ip route | grep default | awk '{print $5}')
+		if [[ -z $main_interface ]]; then
+			echo "无法获取主网卡名称，请手动设置"
+			bash /usr/local/SSR-Bash-Python/self.sh
+			exit 1
+		fi
+		# 清除已有的限速规则
+		tc qdisc del dev $main_interface root 2>/dev/null
+		# 添加新的限速规则
+		tc qdisc add dev $main_interface root tbf rate ${speed_limit}mbit burst 32kbit latency 400ms
+		echo "已成功设置主机限速为 ${speed_limit} Mbps"
+		bash /usr/local/SSR-Bash-Python/self.sh
+	fi
+fi
+if [[ $choice == 10 ]];then
+	# 获取主网卡名称
+	main_interface=$(ip route | grep default | awk '{print $5}')
+	if [[ -z $main_interface ]]; then
+		echo "无法获取主网卡名称"
+		bash /usr/local/SSR-Bash-Python/self.sh
+		exit 1
+	fi
+	# 查看当前限速规则
+	current_limit=$(tc qdisc show dev $main_interface | grep "tbf" | grep -oP "rate \K[0-9]+[a-zA-Z]+")
+	if [[ -z $current_limit ]]; then
+		echo "当前未设置主机限速"
+	else
+		echo "当前主机限速为：$current_limit"
+	fi
+	echo ""
+	read -n 1 -p "按任意键继续..." any_key
+	bash /usr/local/SSR-Bash-Python/self.sh
 fi
 exit 0
