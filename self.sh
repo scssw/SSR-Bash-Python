@@ -4,7 +4,7 @@ export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 #Check Root
 [ $(id -u) != "0" ] && { echo "Error: You must be root to run this script"; exit 1; }
 
-#CheckOS
+#Check OS
 if [ -n "$(grep 'Aliyun Linux release' /etc/issue)" -o -e /etc/redhat-release ];then
 OS=CentOS
 [ -n "$(grep ' 7\.' /etc/redhat-release)" ] && CentOS_RHEL_version=7
@@ -30,336 +30,306 @@ else
 echo "Does not support this OS, Please contact the author! "
 kill -9 $$
 fi
-servercheck(){
-	echo "你要做什么？"
-	echo ""
-	echo "1.启动服务"
-	echo "2.停止服务"
-	echo "3.重启服务"
-	echo "4.查看日志"
-	echo "5.重新配置"
-	while :; do echo
-		read -p "请选择： " serverch
-		[ -z "$serverch" ] && break
-		if [[ ! $serverch =~ ^[1-5]$ ]]; then
-			echo "输入错误! 请输入正确的数字!"
-		else
-			break
-		fi
-	done
 
-	if [[ $serverch == 1 ]];then
-		PID=$(ps -ef |grep -v grep | grep "bash" | grep "servercheck.sh" | grep "run" | awk '{print $2}')
-		if [[ ! -z ${PID} ]];then
-			echo "该服务已经启动，无需操作"
-			servercheck
-		else
-			nohup bash /usr/local/SSR-Bash-Python/servercheck.sh run 2>/dev/null &
-			echo "服务已启动"
-			servercheck
-		fi
+#Main
+updateme(){
+	cd ~
+	if [[ -e ~/version.txt ]];then
+		rm -f ~/version.txt
 	fi
-	if [[ $serverch == 2 ]];then
-		PID=$(ps -ef |grep -v grep | grep "bash" | grep "servercheck.sh" | grep "run" | awk '{print $2}')
-		if [[ -z ${PID} ]];then
-			echo "该进程不存在,你无法停止服务"
-			servercheck
+	wget -q https://git.fdos.me/stack/AR-B-P-B/raw/develop/version.txt
+	version1=`cat ~/version.txt`
+	version2=`cat /usr/local/SSR-Bash-Python/version.txt`
+	if [[ "$version1" == "$version2" ]];then
+		echo "你当前已是最新版"
+		sleep 2s
+		ssr
+	else
+		echo "当前最新版本为$version1,输入y进行更新，其它按键退出"
+		read -n 1 yn
+		if [[ $yn == [Yy] ]];then
+			export yn=n
+			wget -q -N --no-check-certificate https://git.fdos.me/stack/AR-B-P-B/raw/master/install.sh && bash install.sh develop
+			sleep 3s
+			clear
+			ssr || exit 0
 		else
-			bash /usr/local/SSR-Bash-Python/servercheck.sh stop
-			servercheck
-		fi
-	fi
-	if [[ $serverch == 3 ]];then
-		PID=$(ps -ef |grep -v grep | grep "bash" | grep "servercheck.sh" | grep "run" | awk '{print $2}')
-		if [[ -z ${PID} ]];then
-			echo "该进程不存在,你无法重启服务"
-			servercheck
-		else
-			bash /usr/local/SSR-Bash-Python/servercheck.sh stop
-			nohup bash /usr/local/SSR-Bash-Python/servercheck.sh run 2>/dev/null &
-			echo "重启大成功"
-			servercheck
-		fi
-	fi
-	if [[ $serverch == 4 ]];then
-		if [[ -e /usr/local/SSR-Bash-Python/check.log ]];then
-			cat /usr/local/SSR-Bash-Python/check.log
-			servercheck
-		else
-			echo "没有找到配置文件！"
-			servercheck
-		fi
-	fi
-	if [[ $serverch == 5 ]];then
-		echo "你将丢弃所有的日志记录数据，并进行重新配置[Y/N]"
-		read yn
-		if [[ $yn == [yY] ]];then
-			PID=$(ps -ef |grep -v grep | grep "bash" | grep "servercheck.sh" | grep "run" | awk '{print $2}')
-			if [[ ! -z ${PID} ]];then
-				kill -9 ${PID}
-			fi
-			bash /usr/local/SSR-Bash-Python/servercheck.sh reconf
-			echo "完毕请启动服务"
-			echo ""
-			servercheck
+			echo "输入错误，退出"
+			bash /usr/local/SSR-Bash-Python/self.sh
 		fi
 	fi
 }
-echo ""
-echo "1.启动服务"
-echo "2.停止服务"
-echo "3.重启服务"
-echo "4.查看日志"
-echo "5.运行状态"
-echo "6.修改DNS"
-echo "7.开启用户WEB面板"
-echo "8.关闭用户WEB面板"
-echo "9.开/关服务端开机启动"
-echo "10.服务器自动巡检系统"
-echo "11.服务器网络与IO测速"
-echo "12.设置WEB面板开机自启动"
-echo "直接回车返回上级菜单"
-
-while :; do echo
-	read -p "请选择： " serverc
-	[ -z "$serverc" ] && ssr && break
-	if [[ ! $serverc =~ ^[1-9]$ ]]; then
-		if [[ $serverc == 10 ]]||[[ $serverc == 11 ]]||[[ $serverc == 12 ]]; then
-			break
+sumdc(){
+	sum1=`cat /proc/sys/kernel/random/uuid| cksum | cut -f1 -d" "|head -c 2`
+	sum2=`cat /proc/sys/kernel/random/uuid| cksum | cut -f1 -d" "|head -c 1`
+	solve=`echo "$sum1-$sum2"|bc`
+	echo -e "请输入\e[32;49m $sum1-$sum2 \e[0m的运算结果,表示你已经确认,输入错误将退出"
+	read sv
+}
+backup(){
+	echo "开始备份!"
+	mkdir -p ${HOME}/backup/tmp
+	cd ${HOME}/backup/tmp
+	cp /usr/local/shadowsocksr/mudb.json ./
+	if [[ -e /usr/local/SSR-Bash-Python/check.log ]];then
+		cp /usr/local/SSR-Bash-Python/check.log ./
+	fi
+	if [[ -e /usr/local/SSR-Bash-Python/timelimit.db ]];then
+		cp /usr/local/SSR-Bash-Python/timelimit.db ./
+	fi
+	netstat -anlt | awk '{print $4}' | sed -e '1,2d' | awk -F : '{print $NF}' | sort -n | uniq >> ./port.conf
+	wf=`ls | wc -l`
+	if [[ $wf -ge 2 ]];then
+		tar -zcvf ../ssr-conf.tar.gz ./*
+	fi
+	cd ..
+	if [[ -e ./ssr-conf.tar.gz ]];then
+		rm -rf ./tmp
+		echo "备份成功,文件位于${HOME}/backup/ssr-conf.tar.gz"
+	else
+		echo "备份失败"
+	fi
+}
+recover(){
+mkdir -p ${HOME}/backup 
+echo "这将会导致你现有的配置被覆盖"
+sumdc
+if [[ "$sv" == "$solve" ]];then
+    bakf=$(ls ${HOME}/backup | wc -l)
+    if [[ ${bakf} != 1 ]];then
+        cd /usr/local/SSR-Bash-Python/Explorer 
+        if [[ ! -e /bin/usleep  ]];then
+            gcc -o /bin/usleep ./usleep.c
+        fi
+        read -p "未发现备份文件或者存在多个备份文件，请手动选择（按Y键将打开一个文件管理器）" yn
+        if [[ ${yn} == [Yy] ]];then
+            chmod +x /usr/local/SSR-Bash-Python/Explorer/*
+            bash ./Explorer.sh "${HOME}/backup"
+	    chmod -x /usr/local/SSR-Bash-Python/Explorer/*
+            bakfile=$(cat /tmp/BakFilename.tmp)
+            if [[ ! -e ${bakfile} ]];then
+                echo "无效!"
+            fi
+        fi
+    fi
+	if [[ -z ${bakfile} ]];then
+		bakfile=${HOME}/backup/ssr-conf.tar.gz 
+	fi
+	if [[ -e ${bakfile} ]];then
+        cd ${HOME}/backup
+		tar -zxvf ${bakfile} -C ./
+		if [[ -e ./check.log ]];then
+			mv ./check.log /usr/local/SSR-Bash-Python/check.log
 		fi
+		if [[ -e /usr/local/SSR-Bash-Python/timelimit.db ]];then
+			mv ./timelimit.db /usr/local/SSR-Bash-Python/timelimit.db
+		fi
+		if [[ ${OS} =~ ^Ubuntu$|^Debian$ ]];then
+			iptables-restore < /etc/iptables.up.rules
+			for port in `cat ./port.conf`; do iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport $port -j ACCEPT ; done
+			for port in `cat ./port.conf`; do iptables -I INPUT -m state --state NEW -m udp -p udp --dport $port -j ACCEPT ; done
+			iptables-save > /etc/iptables.up.rules
+			iptables -vnL
+		fi
+		if [[ ${OS} == CentOS ]];then
+			if [[ $CentOS_RHEL_version == 7 ]];then
+				iptables-restore < /etc/iptables.up.rules
+				for port in `cat ./port.conf`; do iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport $port -j ACCEPT ; done
+				for port in `cat ./port.conf`; do iptables -I INPUT -m state --state NEW -m udp -p udp --dport $port -j ACCEPT ; done
+				iptables-save > /etc/iptables.up.rules
+				iptables -vnL
+			else
+				for port in `cat ./port.conf`; do iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport $port -j ACCEPT ; done 
+				for port in `cat ./port.conf`; do iptables -I INPUT -m state --state NEW -m udp -p udp --dport $port -j ACCEPT ; done
+				/etc/init.d/iptables save
+				/etc/init.d/iptables restart
+				iptables -vnL && sed -i '5a#tcp port rule' /etc/sysconfig/iptables
+			fi
+		fi
+		rm -f /usr/local/shadowsocksr/mudb.json
+		mv ./mudb.json /usr/local/shadowsocksr/mudb.json
+		rm -f ./port.conf
+		echo "还原操作已完成，开始检测是否已生效!"
+		bash /usr/local/SSR-Bash-Python/servercheck.sh test
+		if [[ -z ${SSRcheck} ]];then
+			echo "配置已生效，还原成功"
+		else
+			echo "配置未生效，还原失败，请联系作者解决"
+		fi
+		rm /tmp/BakFilename.tmp
+	else
+		echo "备份文件不存在，请检查！"
+	fi
+else
+	echo "计算错误，正确结果为$solve"
+fi
+}
+#Show
+echo "输入数字选择功能："
+echo ""
+echo "4.卸载程序"
+echo "5.备份配置"
+echo "6.还原配置"
+echo "7.设置所有用户限速"
+echo "8.去除所有用户限速"
+echo "9.设置主机限速"
+echo "10.查看主机限速"
+echo "11.设置开机自启动主机限速"
+while :; do echo
+	read -p "请选择： " choice
+	if [[ ! $choice =~ ^([4-9]|10|11)$ ]]; then
+		[ -z "$choice" ] && ssr && break
 		echo "输入错误! 请输入正确的数字!"
 	else
 		break	
 	fi
 done
-
-if [[ $serverc == 1 ]];then
-	bash /usr/local/shadowsocksr/logrun.sh
-	iptables-restore < /etc/iptables.up.rules
-	clear
-	echo "ShadowsocksR服务器已启动"
-	echo ""
-	bash /usr/local/SSR-Bash-Python/server.sh
+if [[ $choice == 4 ]];then
+	echo "你在做什么？你真的这么狠心吗？"
+	sumdc
+	if [[ "$sv" == "$solve" ]];then
+		wget -q -N --no-check-certificate https://raw.githubusercontent.com/scssw/SSR-Bash-Python/master/install.sh  && bash install.sh uninstall
+		exit 0
+	else
+		echo "计算错误，正确结果为$solve"
+		bash /usr/local/SSR-Bash-Python/self.sh
+	fi
 fi
-
-if [[ $serverc == 2 ]];then
-	bash /usr/local/shadowsocksr/stop.sh
-	echo "ShadowsocksR服务器已停止"
-	echo ""
-	bash /usr/local/SSR-Bash-Python/server.sh
+if [[ $choice == 5 ]];then
+	if [[ ! -e ${HOME}/backup/ssr-conf.tar.gz ]];then
+		backup
+	else
+		cd ${HOME}/backup
+		mv ./ssr-conf.tar.gz ./ssr-conf-`date +%Y-%m-%d_%H:%M:%S`.tar.gz
+		backup
+	fi
+	bash /usr/local/SSR-Bash-Python/self.sh
 fi
-
-if [[ $serverc == 3 ]];then
-	bash /usr/local/shadowsocksr/stop.sh
-	bash /usr/local/shadowsocksr/logrun.sh
-	iptables-restore < /etc/iptables.up.rules
-	clear
-	echo "ShadowsocksR服务器已重启"
-	echo ""
-	bash /usr/local/SSR-Bash-Python/server.sh
+if [[ $choice == 6 ]];then
+	recover
+	bash /usr/local/SSR-Bash-Python/self.sh
 fi
-
-if [[ $serverc == 4 ]];then
-	trap 'bash /usr/local/SSR-Bash-Python/server.sh' 2
-	bash /usr/local/shadowsocksr/tail.sh
+if [[ $choice == 7 ]];then
+	read -p "请输入限速值(单位：Mbps)：" speed_limit
+	if [[ ! $speed_limit =~ ^[0-9]+$ ]]; then
+		echo "输入错误！请输入数字！"
+		bash /usr/local/SSR-Bash-Python/self.sh
+	else
+		speed_limit_kbps=$(($speed_limit * 128))
+		python /usr/local/SSR-Bash-Python/speed.py $speed_limit_kbps
+		echo "已成功设置所有用户限速为 ${speed_limit} Mbps"
+		bash /usr/local/SSR-Bash-Python/self.sh
+	fi
 fi
-
-if [[ $serverc == 5 ]];then
-	ps aux|grep server.py
-	bash /usr/local/SSR-Bash-Python/server.sh
+if [[ $choice == 8 ]];then
+	python /usr/local/SSR-Bash-Python/speed.py 0
+	echo "已去除所有用户节点限速"
+	bash /usr/local/SSR-Bash-Python/self.sh
 fi
-
-if [[ $serverc == 6 ]];then
-	read -p "输入主要 DNS 服务器: " ifdns1
-	read -p "输入次要 DNS 服务器: " ifdns2
-	echo "nameserver $ifdns1" > /etc/resolv.conf
-	echo "nameserver $ifdns2" >> /etc/resolv.conf
-	echo "DNS 服务器已设置为  $ifdns1 $ifdns2"
-	echo ""
-	bash /usr/local/SSR-Bash-Python/server.sh
+if [[ $choice == 9 ]];then
+	read -p "请输入限速值(单位：Mbps)：" speed_limit
+	if [[ ! $speed_limit =~ ^[0-9]+$ ]]; then
+		echo "输入错误！请输入数字！"
+		bash /usr/local/SSR-Bash-Python/self.sh
+	else
+		# 获取主网卡名称
+		main_interface=$(ip route | grep default | awk '{print $5}')
+		if [[ -z $main_interface ]]; then
+			echo "无法获取主网卡名称，请手动设置"
+			bash /usr/local/SSR-Bash-Python/self.sh
+			exit 1
+		fi
+		# 清除已有的限速规则
+		tc qdisc del dev $main_interface root 2>/dev/null
+		# 添加新的限速规则
+		tc qdisc add dev $main_interface root tbf rate ${speed_limit}mbit burst 32kbit latency 400ms
+		echo "已成功设置主机限速为 ${speed_limit} Mbps"
+		bash /usr/local/SSR-Bash-Python/self.sh
+	fi
 fi
-
-if [[ $serverc == 7 ]];then
-	P_V=`python -V 2>&1 | awk '{print $2}'`
-	P_V1=`python -V 2>&1 | awk '{print $2}' | awk -F '.' '{print $1}'`
-	if [[ ${P_V1} == 3 ]];then
-		echo "你当前的python版本不支持此功能"
-		echo "当前版本：${P_V} ,请降级至2.x版本"
-		echo ""
-		bash /usr/local/SSR-Bash-Python/server.sh
+if [[ $choice == 10 ]];then
+	# 获取主网卡名称
+	main_interface=$(ip route | grep default | awk '{print $5}')
+	if [[ -z $main_interface ]]; then
+		echo "无法获取主网卡名称"
+		bash /usr/local/SSR-Bash-Python/self.sh
 		exit 1
 	fi
-	while :; do echo
-		read -p "请输入自定义的WEB端口：" cgiport
-		if [[ "$cgiport" =~ ^(-?|\+?)[0-9]+(\.?[0-9]+)?$ ]];then
-			break
-		else
-			echo 'Input Error!'
-		fi
-	done
-	#Set Firewalls
-	if [[ ${OS} =~ ^Ubuntu$|^Debian$ ]];then
-		iptables-restore < /etc/iptables.up.rules
-		clear
-		iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport $cgiport -j ACCEPT
-		iptables -I INPUT -m state --state NEW -m udp -p udp --dport $cgiport -j ACCEPT
-		iptables-save > /etc/iptables.up.rules
+	# 查看当前限速规则
+	current_limit=$(tc qdisc show dev $main_interface | grep "tbf" | grep -oP "rate \K[0-9]+[a-zA-Z]+")
+	if [[ -z $current_limit ]]; then
+		echo "当前未设置主机限速"
+	else
+		echo "当前主机限速为：$current_limit"
 	fi
-
-	if [[ ${OS} == CentOS ]];then
-		if [[ $CentOS_RHEL_version == 7 ]];then
-			iptables-restore < /etc/iptables.up.rules
-			iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport $cgiport -j ACCEPT
-    		iptables -I INPUT -m state --state NEW -m udp -p udp --dport $cgiport -j ACCEPT
-			iptables-save > /etc/iptables.up.rules
-		else
-			iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport $cgiport -j ACCEPT
-    		iptables -I INPUT -m state --state NEW -m udp -p udp --dport $cgiport -j ACCEPT
-			/etc/init.d/iptables save
-			/etc/init.d/iptables restart
+	echo ""
+	read -n 1 -p "按任意键继续..." any_key
+	bash /usr/local/SSR-Bash-Python/self.sh
+fi
+if [[ $choice == 11 ]];then
+	read -p "请输入限速值(单位：Mbps)：" speed_limit
+	if [[ ! $speed_limit =~ ^[0-9]+$ ]]; then
+		echo "输入错误！请输入数字！"
+		bash /usr/local/SSR-Bash-Python/self.sh
+	else
+		# 获取主网卡名称
+		main_interface=$(ip route | grep default | awk '{print $5}')
+		if [[ -z $main_interface ]]; then
+			echo "无法获取主网卡名称，请手动设置"
+			bash /usr/local/SSR-Bash-Python/self.sh
+			exit 1
 		fi
-	fi
-	#Get IP
-	ip=`curl -m 10 -s http://members.3322.org/dyndns/getip`
-	clear
-	chmod -R 777 /usr/local/SSR-Bash-Python
-	
-	# 创建默认首页
-	cat > /usr/local/SSR-Bash-Python/www/index.html << EOF
-<!DOCTYPE html>
-<html>
-<head>
-    <meta http-equiv="refresh" content="0;url=check_flow.html">
-    <title>重定向到流量查询</title>
-</head>
-<body>
-    <p>loading...</p>
-</body>
-</html>
-EOF
-	
-	# 创建用户WEB面板启动脚本
-	cat > /usr/local/SSR-Bash-Python/user_web_panel.sh << EOF
+		
+		# 创建限速脚本
+		cat > /usr/local/SSR-Bash-Python/tc_limit.sh << EOF
 #!/bin/bash
-cd /usr/local/SSR-Bash-Python/www
-screen -dmS webcgi python -m CGIHTTPServer $cgiport
+# 清除已有的限速规则
+tc qdisc del dev ${main_interface} root 2>/dev/null
+# 添加新的限速规则
+tc qdisc add dev ${main_interface} root tbf rate ${speed_limit}mbit burst 32kbit latency 400ms
 EOF
-	chmod +x /usr/local/SSR-Bash-Python/user_web_panel.sh
-	
-	# 设置开机自启动
-	if [ -d "/etc/systemd/system" ]; then
-		# 对于使用systemd的系统
-		cat > /etc/systemd/system/ssr-user-web-panel.service << EOF
+		chmod +x /usr/local/SSR-Bash-Python/tc_limit.sh
+		
+		# 设置开机自启动
+		if [ -d "/etc/systemd/system" ]; then
+			# 对于使用systemd的系统
+			cat > /etc/systemd/system/tc-limit.service << EOF
 [Unit]
-Description=SSR User Web Panel
+Description=TC Speed Limit
 After=network.target
 
 [Service]
-Type=forking
-ExecStart=/usr/local/SSR-Bash-Python/user_web_panel.sh
-Restart=always
-RestartSec=5
+Type=oneshot
+ExecStart=/usr/local/SSR-Bash-Python/tc_limit.sh
+RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
 EOF
-		systemctl daemon-reload
-		systemctl enable ssr-user-web-panel.service
-		systemctl start ssr-user-web-panel.service
-		echo "已成功设置用户WEB面板开机自启动（systemd服务）"
-	elif [ -f "/etc/rc.local" ]; then
-		# 对于使用rc.local的系统
-		if ! grep -q "/usr/local/SSR-Bash-Python/user_web_panel.sh" /etc/rc.local; then
-			sed -i '/exit 0/i\/usr/local/SSR-Bash-Python\/user_web_panel.sh' /etc/rc.local
+			systemctl daemon-reload
+			systemctl enable tc-limit.service
+			systemctl start tc-limit.service
+			echo "已成功设置主机限速为 ${speed_limit} Mbps 并设置开机自启动（systemd服务）"
+		elif [ -f "/etc/rc.local" ]; then
+			# 对于使用rc.local的系统
+			if ! grep -q "/usr/local/SSR-Bash-Python/tc_limit.sh" /etc/rc.local; then
+				sed -i '/exit 0/i\/usr/local/SSR-Bash-Python/tc_limit.sh' /etc/rc.local
+			fi
+			# 立即应用限速
+			bash /usr/local/SSR-Bash-Python/tc_limit.sh
+			echo "已成功设置主机限速为 ${speed_limit} Mbps 并设置开机自启动（rc.local）"
+		else
+			# 如果以上方法都不适用，创建crontab
+			(crontab -l 2>/dev/null; echo "@reboot /usr/local/SSR-Bash-Python/tc_limit.sh") | crontab -
+			# 立即应用限速
+			bash /usr/local/SSR-Bash-Python/tc_limit.sh
+			echo "已成功设置主机限速为 ${speed_limit} Mbps 并设置开机自启动（crontab）"
 		fi
-		# 立即启动用户WEB面板
-		bash /usr/local/SSR-Bash-Python/user_web_panel.sh
-		echo "已成功设置用户WEB面板开机自启动（rc.local）"
-	else
-		# 如果以上方法都不适用，使用crontab
-		(crontab -l 2>/dev/null; echo "@reboot /usr/local/SSR-Bash-Python/user_web_panel.sh") | crontab -
-		# 立即启动用户WEB面板
-		bash /usr/local/SSR-Bash-Python/user_web_panel.sh
-		echo "已成功设置用户WEB面板开机自启动（crontab）"
+		
+		bash /usr/local/SSR-Bash-Python/self.sh
 	fi
-	
-	echo "WEB服务启动成功，请访问 http://${ip}:$cgiport"
-	echo "将自动跳转到流量查询页面"
-	echo ""
-	bash /usr/local/SSR-Bash-Python/server.sh
 fi
-
-if [[ $serverc == 8 ]];then
-	cgipid=$(ps -ef|grep 'webcgi' |grep -v grep |awk '{print $2}')
-	kill -9 $cgipid
-	screen -wipe
-	
-	# 停止并禁用开机自启动
-	if [ -d "/etc/systemd/system" ]; then
-		systemctl stop ssr-user-web-panel.service
-		systemctl disable ssr-user-web-panel.service
-		rm -f /etc/systemd/system/ssr-user-web-panel.service
-	elif [ -f "/etc/rc.local" ]; then
-		sed -i '/\/usr\/local\/SSR-Bash-Python\/user_web_panel.sh/d' /etc/rc.local
-	else
-		crontab -l | grep -v "@reboot /usr/local/SSR-Bash-Python/user_web_panel.sh" | crontab -
-	fi
-	
-	clear
-	echo "WEB服务已关闭！"
-	echo ""
-	bash /usr/local/SSR-Bash-Python/server.sh
-fi
-
-if [[ $serverc == 9 ]];then
-	if [[ ${OS} == Ubuntu || ${OS} == Debian ]];then
-    	cat >/etc/init.d/ssr-bash-python <<EOF
-#!/bin/sh
-### BEGIN INIT INFO
-# Provides:          SSR-Bash_python
-# Required-Start: $local_fs $remote_fs
-# Required-Stop: $local_fs $remote_fs
-# Should-Start: $network
-# Should-Stop: $network
-# Default-Start:        2 3 4 5
-# Default-Stop:         0 1 6
-# Short-Description: SSR-Bash-Python
-# Description: SSR-Bash-Python
-### END INIT INFO
-iptables-restore < /etc/iptables.up.rules
-bash /usr/local/shadowsocksr/logrun.sh
-EOF
-    	chmod 755 /etc/init.d/ssr-bash-python
-    	chmod +x /etc/init.d/ssr-bash-python
-    	cd /etc/init.d
-    	update-rc.d ssr-bash-python defaults 95
-	fi
-
-	if [[ ${OS} == CentOS ]];then
-    	echo "
-iptables-restore < /etc/iptables.up.rules
-bash /usr/local/shadowsocksr/logrun.sh
-" > /etc/rc.d/init.d/ssr-bash-python
-    	chmod +x  /etc/rc.d/init.d/ssr-bash-python
-    	echo "/etc/rc.d/init.d/ssr-bash-python" >> /etc/rc.d/rc.local
-    	chmod +x /etc/rc.d/rc.local
-	fi
-	echo "开机启动设置完成！"
-        echo ""
-	bash /usr/local/SSR-Bash-Python/server.sh
-fi
-
-if [[ $serverc == 10 ]];then
-	servercheck
-	bash /usr/local/SSR-Bash-Python/server.sh
-fi	
-
-if [[ $serverc == 11 ]];then
-    bash /usr/local/SSR-Bash-Python/ZBench-CN.sh
-	bash /usr/local/SSR-Bash-Python/server.sh
-fi
-
-if [[ $serverc == 12 ]];then
+if [[ $choice == 12 ]];then
 	# 创建web面板启动脚本
 	cat > /usr/local/SSR-Bash-Python/web_panel_start.sh << EOF
 #!/bin/bash
@@ -405,8 +375,7 @@ EOF
 		echo "已成功设置Web面板开机自启动（crontab）"
 	fi
 	
-	echo ""
 	echo "Web面板已启动并设置开机自启动"
-	echo ""
-	bash /usr/local/SSR-Bash-Python/server.sh
+	bash /usr/local/SSR-Bash-Python/self.sh
 fi
+exit 0
