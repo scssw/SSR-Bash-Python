@@ -174,9 +174,10 @@ echo "7.设置所有用户限速"
 echo "8.去除所有用户限速"
 echo "9.设置主机限速"
 echo "10.查看主机限速"
+echo "11.设置开机自启动主机限速"
 while :; do echo
 	read -p "请选择： " choice
-	if [[ ! $choice =~ ^([4-9]|10)$ ]]; then
+	if [[ ! $choice =~ ^([4-9]|10|11)$ ]]; then
 		[ -z "$choice" ] && ssr && break
 		echo "输入错误! 请输入正确的数字!"
 	else
@@ -264,5 +265,68 @@ if [[ $choice == 10 ]];then
 	echo ""
 	read -n 1 -p "按任意键继续..." any_key
 	bash /usr/local/SSR-Bash-Python/self.sh
+fi
+if [[ $choice == 11 ]];then
+	read -p "请输入限速值(单位：Mbps)：" speed_limit
+	if [[ ! $speed_limit =~ ^[0-9]+$ ]]; then
+		echo "输入错误！请输入数字！"
+		bash /usr/local/SSR-Bash-Python/self.sh
+	else
+		# 获取主网卡名称
+		main_interface=$(ip route | grep default | awk '{print $5}')
+		if [[ -z $main_interface ]]; then
+			echo "无法获取主网卡名称，请手动设置"
+			bash /usr/local/SSR-Bash-Python/self.sh
+			exit 1
+		fi
+		
+		# 创建限速脚本
+		cat > /usr/local/SSR-Bash-Python/tc_limit.sh << EOF
+#!/bin/bash
+# 清除已有的限速规则
+tc qdisc del dev ${main_interface} root 2>/dev/null
+# 添加新的限速规则
+tc qdisc add dev ${main_interface} root tbf rate ${speed_limit}mbit burst 32kbit latency 400ms
+EOF
+		chmod +x /usr/local/SSR-Bash-Python/tc_limit.sh
+		
+		# 设置开机自启动
+		if [ -d "/etc/systemd/system" ]; then
+			# 对于使用systemd的系统
+			cat > /etc/systemd/system/tc-limit.service << EOF
+[Unit]
+Description=TC Speed Limit
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/SSR-Bash-Python/tc_limit.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+			systemctl daemon-reload
+			systemctl enable tc-limit.service
+			systemctl start tc-limit.service
+			echo "已成功设置主机限速为 ${speed_limit} Mbps 并设置开机自启动（systemd服务）"
+		elif [ -f "/etc/rc.local" ]; then
+			# 对于使用rc.local的系统
+			if ! grep -q "/usr/local/SSR-Bash-Python/tc_limit.sh" /etc/rc.local; then
+				sed -i '/exit 0/i\/usr/local/SSR-Bash-Python/tc_limit.sh' /etc/rc.local
+			fi
+			# 立即应用限速
+			bash /usr/local/SSR-Bash-Python/tc_limit.sh
+			echo "已成功设置主机限速为 ${speed_limit} Mbps 并设置开机自启动（rc.local）"
+		else
+			# 如果以上方法都不适用，创建crontab
+			(crontab -l 2>/dev/null; echo "@reboot /usr/local/SSR-Bash-Python/tc_limit.sh") | crontab -
+			# 立即应用限速
+			bash /usr/local/SSR-Bash-Python/tc_limit.sh
+			echo "已成功设置主机限速为 ${speed_limit} Mbps 并设置开机自启动（crontab）"
+		fi
+		
+		bash /usr/local/SSR-Bash-Python/self.sh
+	fi
 fi
 exit 0
