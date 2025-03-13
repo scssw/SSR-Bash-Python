@@ -117,13 +117,14 @@ echo "8.关闭用户WEB面板"
 echo "9.开/关服务端开机启动"
 echo "10.服务器自动巡检系统"
 echo "11.服务器网络与IO测速"
+echo "12.设置WEB面板开机自启动"
 echo "直接回车返回上级菜单"
 
 while :; do echo
 	read -p "请选择： " serverc
 	[ -z "$serverc" ] && ssr && break
 	if [[ ! $serverc =~ ^[1-9]$ ]]; then
-		if [[ $serverc == 10 ]]||[[ $serverc == 11 ]]; then
+		if [[ $serverc == 10 ]]||[[ $serverc == 11 ]]||[[ $serverc == 12 ]]; then
 			break
 		fi
 		echo "输入错误! 请输入正确的数字!"
@@ -222,9 +223,68 @@ if [[ $serverc == 7 ]];then
 	ip=`curl -m 10 -s http://members.3322.org/dyndns/getip`
 	clear
 	chmod -R 777 /usr/local/SSR-Bash-Python
-	cd /usr/local/SSR-Bash-Python/www
-	screen -dmS webcgi python -m CGIHTTPServer $cgiport
+	
+	# 创建默认首页
+	cat > /usr/local/SSR-Bash-Python/www/index.html << EOF
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="refresh" content="0;url=check_flow.html">
+    <title>重定向到流量查询</title>
+</head>
+<body>
+    <p>loading...</p>
+</body>
+</html>
+EOF
+	
+	# 创建用户WEB面板启动脚本
+	cat > /usr/local/SSR-Bash-Python/user_web_panel.sh << EOF
+#!/bin/bash
+cd /usr/local/SSR-Bash-Python/www
+screen -dmS webcgi python -m CGIHTTPServer $cgiport
+EOF
+	chmod +x /usr/local/SSR-Bash-Python/user_web_panel.sh
+	
+	# 设置开机自启动
+	if [ -d "/etc/systemd/system" ]; then
+		# 对于使用systemd的系统
+		cat > /etc/systemd/system/ssr-user-web-panel.service << EOF
+[Unit]
+Description=SSR User Web Panel
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/local/SSR-Bash-Python/user_web_panel.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+		systemctl daemon-reload
+		systemctl enable ssr-user-web-panel.service
+		systemctl start ssr-user-web-panel.service
+		echo "已成功设置用户WEB面板开机自启动（systemd服务）"
+	elif [ -f "/etc/rc.local" ]; then
+		# 对于使用rc.local的系统
+		if ! grep -q "/usr/local/SSR-Bash-Python/user_web_panel.sh" /etc/rc.local; then
+			sed -i '/exit 0/i\/usr/local/SSR-Bash-Python\/user_web_panel.sh' /etc/rc.local
+		fi
+		# 立即启动用户WEB面板
+		bash /usr/local/SSR-Bash-Python/user_web_panel.sh
+		echo "已成功设置用户WEB面板开机自启动（rc.local）"
+	else
+		# 如果以上方法都不适用，使用crontab
+		(crontab -l 2>/dev/null; echo "@reboot /usr/local/SSR-Bash-Python/user_web_panel.sh") | crontab -
+		# 立即启动用户WEB面板
+		bash /usr/local/SSR-Bash-Python/user_web_panel.sh
+		echo "已成功设置用户WEB面板开机自启动（crontab）"
+	fi
+	
 	echo "WEB服务启动成功，请访问 http://${ip}:$cgiport"
+	echo "将自动跳转到流量查询页面"
 	echo ""
 	bash /usr/local/SSR-Bash-Python/server.sh
 fi
@@ -233,6 +293,18 @@ if [[ $serverc == 8 ]];then
 	cgipid=$(ps -ef|grep 'webcgi' |grep -v grep |awk '{print $2}')
 	kill -9 $cgipid
 	screen -wipe
+	
+	# 停止并禁用开机自启动
+	if [ -d "/etc/systemd/system" ]; then
+		systemctl stop ssr-user-web-panel.service
+		systemctl disable ssr-user-web-panel.service
+		rm -f /etc/systemd/system/ssr-user-web-panel.service
+	elif [ -f "/etc/rc.local" ]; then
+		sed -i '/\/usr\/local\/SSR-Bash-Python\/user_web_panel.sh/d' /etc/rc.local
+	else
+		crontab -l | grep -v "@reboot /usr/local/SSR-Bash-Python/user_web_panel.sh" | crontab -
+	fi
+	
 	clear
 	echo "WEB服务已关闭！"
 	echo ""
@@ -284,5 +356,57 @@ fi
 
 if [[ $serverc == 11 ]];then
     bash /usr/local/SSR-Bash-Python/ZBench-CN.sh
+	bash /usr/local/SSR-Bash-Python/server.sh
+fi
+
+if [[ $serverc == 12 ]];then
+	# 创建web面板启动脚本
+	cat > /usr/local/SSR-Bash-Python/web_panel_start.sh << EOF
+#!/bin/bash
+cd /usr/local/shadowsocksr
+python server.py
+EOF
+	chmod +x /usr/local/SSR-Bash-Python/web_panel_start.sh
+	
+	# 设置开机自启动
+	if [ -d "/etc/systemd/system" ]; then
+		# 对于使用systemd的系统
+		cat > /etc/systemd/system/ssr-web-panel.service << EOF
+[Unit]
+Description=SSR Web Panel
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /usr/local/shadowsocksr/server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+		systemctl daemon-reload
+		systemctl enable ssr-web-panel.service
+		systemctl start ssr-web-panel.service
+		echo "已成功设置Web面板开机自启动（systemd服务）"
+	elif [ -f "/etc/rc.local" ]; then
+		# 对于使用rc.local的系统
+		if ! grep -q "cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &" /etc/rc.local; then
+			sed -i '/exit 0/i\cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &' /etc/rc.local
+		fi
+		# 立即启动web面板
+		cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &
+		echo "已成功设置Web面板开机自启动（rc.local）"
+	else
+		# 如果以上方法都不适用，使用crontab
+		(crontab -l 2>/dev/null; echo "@reboot cd /usr/local/shadowsocksr && python server.py > /dev/null 2>&1 &") | crontab -
+		# 立即启动web面板
+		cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &
+		echo "已成功设置Web面板开机自启动（crontab）"
+	fi
+	
+	echo ""
+	echo "Web面板已启动并设置开机自启动"
+	echo ""
 	bash /usr/local/SSR-Bash-Python/server.sh
 fi
