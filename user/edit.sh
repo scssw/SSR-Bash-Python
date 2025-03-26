@@ -42,41 +42,44 @@ pqr(){
 		bash /usr/local/SSR-Bash-Python/user/qrcode.sh p $uid
 	fi
 }
-echo -e "\n1.使用用户名"
-echo "2.使用端口"
-echo ""
-while :; do echo
-	read -p "请选择： " lsid
-	if [[ ! $lsid =~ ^[1-2]$ ]]; then
-		if [[ $lsid == "" ]]; then
-			bash /usr/local/SSR-Bash-Python/user.sh || exit 0
-		fi
-		echo "输入错误! 请输入正确的数字!"
-	else
-		break	
-	fi
-done
-if [[ $lsid == 1 ]];then
-	read -p "输入用户名： " uid
-	cd /usr/local/shadowsocksr
-	checkuid=$(python mujson_mgr.py -l -u $uid 2>/dev/null)
-	if [[ -z ${checkuid} ]];then
-		echo "用户不存在！"
-		bash /usr/local/SSR-Bash-Python/user/edit.sh || exit 0
-	else
-		python mujson_mgr.py -l -u $uid
-	fi
-fi
-if [[ $lsid == 2 ]];then
-	read -p "输入端口号： " uid
-	cd /usr/local/shadowsocksr
-	checkuid=$(python mujson_mgr.py -l -p $uid 2>/dev/null)
-	if [[ -z ${checkuid} ]];then
-		echo "用户不存在！"
-		bash /usr/local/SSR-Bash-Python/user/edit.sh || exit 0
-	else
-		python mujson_mgr.py -l -p $uid
-	fi
+
+lsid=2
+read -p "输入端口号： " uid
+cd /usr/local/shadowsocksr
+checkuid=$(python mujson_mgr.py -l -p $uid 2>/dev/null)
+if [[ -z ${checkuid} ]];then
+	echo "用户不存在！"
+	bash /usr/local/SSR-Bash-Python/user/edit.sh || exit 0
+else
+	python mujson_mgr.py -l -p $uid
+
+	# 生成带备注的SSR链接
+	myipname=`cat /usr/local/shadowsocksr/myip.txt`
+	username=`python mujson_mgr.py -l -p $uid | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
+	upass=`python mujson_mgr.py -l -p $uid | grep "passwd :" | awk -F" : " '{ print $2 }'`
+	um1=`python mujson_mgr.py -l -p $uid | grep "method :" | awk -F" : " '{ print $2 }'`
+	ux1=`python mujson_mgr.py -l -p $uid | grep "protocol :" | awk -F" : " '{ print $2 }'`
+	uo1=`python mujson_mgr.py -l -p $uid | grep "obfs :" | awk -F" : " '{ print $2 }'`
+
+	# 从域名中提取前缀并转换为大写
+	prefix=$(echo $myipname | awk -F'.' '{print $1}' | tr '[:lower:]' '[:upper:]')
+
+	# 从timelimit.db中提取到期时间并格式化
+	expire_date=$(cat /usr/local/SSR-Bash-Python/timelimit.db | grep "${uid}:" | awk -F":" '{print $2}' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\2.\3/' | sed 's/^0//' | sed 's/\.0/./')
+
+	# 组合备注
+	remark="${prefix}:${uid}-${expire_date}"
+
+	# 生成带备注的加密SSR链接
+	encoded_pass=$(echo -n "$upass" | base64 | tr '+/' '-_' | tr -d '=')
+	encoded_remark=$(echo -n "$remark" | base64 | tr '+/' '-_' | tr -d '=')
+	server_string="${myipname}:${uid}:${ux1}:${um1}:${uo1}:${encoded_pass}/?remarks=${encoded_remark}"
+	encoded_server=$(echo -n "$server_string" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
+	ssr_link="ssr://${encoded_server}"
+
+	echo "$ssr_link"
+	echo ""
+	echo "备注: $remark"
 fi
 
 echo -e "\n1.修改密码"
@@ -442,7 +445,7 @@ if [[ $ec == 11 ]];then
 	userlimit="/usr/local/SSR-Bash-Python/timelimit.db"
 	if [[ ${lsid} == 1 ]];then
 		port=$(python mujson_mgr.py -l -u ${uid} | grep "port :" | awk -F" : " '{ print $2 }')
-		datelimit=$(cat ${userlimit} | grep "${port}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9}\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
+		datelimit=$(cat ${userlimit} | grep "${port}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9\}2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
 		if [[ -z ${datelimit} ]];then
 			datelimit="永久"
 		fi
@@ -454,7 +457,7 @@ if [[ $ec == 11 ]];then
 		bash /usr/local/SSR-Bash-Python/timelimit.sh e ${port} ${limit} 
 	fi
 	if [[ ${lsid} == 2 ]];then
-		datelimit=$(cat ${userlimit} | grep "${uid}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9}\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
+		datelimit=$(cat ${userlimit} | grep "${uid}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9\}2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
 		if [[ -z ${datelimit} ]];then
 			datelimit="永久"
 		fi
@@ -466,11 +469,54 @@ if [[ $ec == 11 ]];then
 		bash /usr/local/SSR-Bash-Python/timelimit.sh e ${uid} ${limit}
 		port=${uid}
 	fi
-	datelimit=$(cat ${userlimit} | grep "${port}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9}\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
+	datelimit=$(cat ${userlimit} | grep "${port}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9\}2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
 	if [[ -z ${datelimit} ]];then
 		datelimit="永久"
 	fi
 	echo -e "修改成功!当前用户端口号：${port},新的有效期至：${datelimit}\n"
+	
+	# 显示用户完整信息
+	cd /usr/local/shadowsocksr
+	python mujson_mgr.py -l -p ${port}
+	
+	# 生成带备注的SSR链接
+	myipname=`cat /usr/local/shadowsocksr/myip.txt`
+	username=`python mujson_mgr.py -l -p ${port} | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
+	upass=`python mujson_mgr.py -l -p ${port} | grep "passwd :" | awk -F" : " '{ print $2 }'`
+	um1=`python mujson_mgr.py -l -p ${port} | grep "method :" | awk -F" : " '{ print $2 }'`
+	ux1=`python mujson_mgr.py -l -p ${port} | grep "protocol :" | awk -F" : " '{ print $2 }'`
+	uo1=`python mujson_mgr.py -l -p ${port} | grep "obfs :" | awk -F" : " '{ print $2 }'`
+
+	# 从域名中提取前缀并转换为大写
+	prefix=$(echo $myipname | awk -F'.' '{print $1}' | tr '[:lower:]' '[:upper:]')
+
+	# 从timelimit.db中提取到期时间并格式化
+	expire_date=$(cat /usr/local/SSR-Bash-Python/timelimit.db | grep "${port}:" | awk -F":" '{print $2}' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\2.\3/' | sed 's/^0//' | sed 's/\.0/./')
+
+	# 组合备注
+	remark="${prefix}:${port}-${expire_date}"
+
+	# 生成带备注的加密SSR链接
+	encoded_pass=$(echo -n "$upass" | base64 | tr '+/' '-_' | tr -d '=')
+	encoded_remark=$(echo -n "$remark" | base64 | tr '+/' '-_' | tr -d '=')
+	server_string="${myipname}:${port}:${ux1}:${um1}:${uo1}:${encoded_pass}/?remarks=${encoded_remark}"
+	encoded_server=$(echo -n "$server_string" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
+	ssr_link="ssr://${encoded_server}"
+
+	echo ""
+	echo "你可以复制以下信息给你的用户: "
+	echo "===================="
+	echo "$ssr_link"
+	echo ""
+	echo "备注: $remark"
+	echo "服务器地址: $myipname"
+	echo "远程端口号: $port"
+	echo "本地端口号: 1080"
+	echo "密码: $upass"
+	echo "加密方法: $um1"
+	echo "协议: $ux1"
+	echo "混淆方式: $uo1"
+	echo "===================="
 fi
 
 if [[ $ec == 12 ]];then
@@ -530,6 +576,20 @@ if [[ $ec == 12 ]];then
 	fi
 	uid=${newport}
 	pqr
+
 	echo -e "端口号修改成功！\n"
+	echo "你可以复制以下信息给你的用户: "
+	echo "===================="
+	echo "SSR链接: $ssr_link"
+	echo "用户名: $username"
+	echo "备注: $remark"
+	echo "服务器地址: $myipname"
+	echo "远程端口号: $uid"
+	echo "本地端口号: 1080"
+	echo "密码: $upass"
+	echo "加密方法: $um1"
+	echo "协议: $ux1"
+	echo "混淆方式: $uo1"
+	echo "===================="
 fi
 exit 0
