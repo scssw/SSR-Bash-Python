@@ -134,9 +134,29 @@ if [[ $SSRPID == "" ]]; then
 fi
 
 myipname=`cat /usr/local/shadowsocksr/myip.txt`
+
+# 生成备注信息
+# 从域名中提取前缀并转换为大写
+prefix=$(echo $myipname | awk -F'.' '{print $1}' | tr '[:lower:]' '[:upper:]')
+
+# 从timelimit.db中提取到期时间并格式化
+expire_date=$(cat /usr/local/SSR-Bash-Python/timelimit.db | grep "${uport}:" | awk -F":" '{print $2}' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\2.\3/' | sed 's/^0//' | sed 's/\.0/./')
+
+# 组合备注
+remark="${prefix}:${uport}-${expire_date}"
+
+# 生成带备注的加密SSR链接
+encoded_pass=$(echo -n "$upass" | base64 | tr '+/' '-_' | tr -d '=')
+encoded_remark=$(echo -n "$remark" | base64 | tr '+/' '-_' | tr -d '=')
+server_string="${myipname}:${uport}:${ux1}:${um1}:${uo1}:${encoded_pass}/?remarks=${encoded_remark}&obfsparam=&protoparam="
+encoded_server=$(echo -n "$server_string" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
+ssr_link="ssr://${encoded_server}"
+
 echo "你可以复制以下信息给你的用户: "
 echo "===================="
+echo "SSR链接: $ssr_link"
 echo "用户名: $uname"
+echo "备注: $remark"
 echo "服务器地址: $myipname"
 echo "远程端口号: $uport"
 echo "本地端口号: 1080"
