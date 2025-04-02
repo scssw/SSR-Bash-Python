@@ -76,42 +76,42 @@ workdir=$(pwd)
 #Install Basic Tools
 if [ ! -e /usr/local/bin/ssr ];then
 if [[ $1 == "uninstall" ]];then
-	echo "你在开玩笑吗？你都没有安装怎么卸载呀！"
-	exit 1
+    echo "你在开玩笑吗？你都没有安装怎么卸载呀！"
+    exit 1
 fi
 echo "开始部署"
 trap 'StopInstall 2>/dev/null && exit 0' 2
 sleep 2s
 if [[ ${OS} == Ubuntu ]];then
-	apt-get update
-	apt-get install python -y
-	apt-get install python-pip -y
-	apt-get install git -y
-	apt-get install language-pack-zh-hans -y
-	apt-get -y install vnstat bc
+    apt-get update
+    apt-get install python -y
+    apt-get install python-pip -y
+    #apt-get install git -y
+    #apt-get install language-pack-zh-hans -y
+    apt-get -y install vnstat bc
     apt-get -y install net-tools
-    apt-get install build-essential screen curl -y
-    apt-get install cron -y
+    #apt-get install build-essential screen curl -y
+    #apt-get install cron -y
 fi
 if [[ ${OS} == CentOS ]];then
-	yum install python screen curl -y
-	yum install python-setuptools -y && easy_install pip -y
-	yum install git -y
-	yum install bc -y
-	yum install vnstat -y
-	yum install net-tools -y
+    yum install python screen curl -y
+    yum install python-setuptools -y && easy_install pip -y
+    yum install git -y
+    yum install bc -y
+    yum install vnstat -y
+    yum install net-tools -y
     yum groupinstall "Development Tools" -y
     yum install vixie-cron crontabs -y
 fi
 if [[ ${OS} == Debian ]];then
-	apt-get update
-	apt-get install python screen curl -y
-	apt-get install python-pip -y
-	apt-get install git -y
-	apt-get -y install net-tools
-	apt-get -y install bc vnstat
-    apt-get install build-essential -y
-    apt-get install cron -y
+    apt-get update
+    apt-get install python screen curl -y
+    apt-get install python-pip -y
+    apt-get install git -y
+    #apt-get -y install net-tools
+    apt-get -y install bc vnstat
+    #apt-get install build-essential -y
+    #apt-get install cron -y
     # 安装iptables
     apt-get install -y iptables
 fi
@@ -122,25 +122,67 @@ fi
 #Install Libsodium
 libsodiumfilea="/usr/local/lib/libsodium.so"
 libsodiumfileb="/usr/lib/libsodium.so"
-if [[ -e ${libsodiumfilea} ]];then
-    echo "libsodium已安装!"
-elif [[ -e ${libsodiumfileb} ]];then
+if [[ -e ${libsodiumfilea} || -e ${libsodiumfileb} ]];then
     echo "libsodium已安装!"
 else
-    cd $workdir
-    export LIBSODIUM_VER=1.0.16
-    wget -q https://github.com/jedisct1/libsodium/releases/download/${LIBSODIUM_VER}/libsodium-$LIBSODIUM_VER.tar.gz
-    tar xvf libsodium-$LIBSODIUM_VER.tar.gz
-    pushd libsodium-$LIBSODIUM_VER
-    ./configure --prefix=/usr && make
-    make install
-    popd
-    ldconfig
-    cd $workdir && rm -rf libsodium-$LIBSODIUM_VER.tar.gz libsodium-$LIBSODIUM_VER
-#    if [[ ! -e ${libsodiumfile} ]];then
-#    	echo "libsodium安装失败 !"
-#    	exit 1
-#    fi
+    # 使用预编译包加速安装
+    if [[ ${OS} == CentOS ]];then
+        if [[ ${CentOS_RHEL_version} == 7 ]]; then
+            yum install -y epel-release
+            yum install -y libsodium libsodium-devel
+            if [[ $? == 0 ]]; then
+                echo "通过yum安装libsodium成功"
+                ldconfig
+            else
+                # 如果yum安装失败，使用源码安装
+                install_from_source=1
+            fi
+        else
+            install_from_source=1
+        fi
+    elif [[ ${OS} == Ubuntu ]];then
+        apt-get install -y libsodium-dev
+        if [[ $? == 0 ]]; then
+            echo "通过apt安装libsodium成功"
+            ldconfig
+        else
+            install_from_source=1
+        fi
+    elif [[ ${OS} == Debian ]];then
+        apt-get install -y libsodium-dev
+        if [[ $? == 0 ]]; then
+            echo "通过apt安装libsodium成功"
+            ldconfig
+        else
+            # 尝试安装libsodium23
+            apt-get install -y libsodium23
+            if [[ $? == 0 ]]; then
+                echo "通过apt安装libsodium23成功"
+                ldconfig
+            else
+                install_from_source=1
+            fi
+        fi
+    else
+        install_from_source=1
+    fi
+    
+    # 如果包管理器安装失败或不支持的系统，使用源码安装
+    if [[ $install_from_source == 1 ]]; then
+        echo "使用源码编译安装libsodium..."
+        cd $workdir
+        export LIBSODIUM_VER=1.0.16
+        wget -q https://github.com/jedisct1/libsodium/releases/download/${LIBSODIUM_VER}/libsodium-$LIBSODIUM_VER.tar.gz
+        tar xf libsodium-$LIBSODIUM_VER.tar.gz
+        pushd libsodium-$LIBSODIUM_VER
+        ./configure --prefix=/usr
+        make -j$(nproc)
+        make install
+        popd
+        ldconfig
+        cd $workdir && rm -rf libsodium-$LIBSODIUM_VER.tar.gz libsodium-$LIBSODIUM_VER
+        echo "源码编译安装libsodium完成"
+    fi
 fi
 cd /usr/local
 git clone https://github.com/scssw/shadowsocksr
@@ -154,29 +196,29 @@ fi
 
 #Install SSR and SSR-Bash
 if [ -e /usr/local/bin/ssr ];then
-	if [[ $1 == "uninstall" ]];then
-		echo "开始卸载"
-		sleep 1s
-		echo "删除:/usr/local/bin/ssr"
-		rm -f /usr/local/bin/ssr
-		echo "删除:/usr/local/SSR-Bash-Python"
-		rm -rf /usr/local/SSR-Bash-Python
-		echo "删除:/usr/local/shadowsocksr"
-		rm -rf /usr/local/shadowsocksr
-		echo "删除:${PWD}/install.sh"
-		rm -f ${PWD}/install.sh
+    if [[ $1 == "uninstall" ]];then
+        echo "开始卸载"
+        sleep 1s
+        echo "删除:/usr/local/bin/ssr"
+        rm -f /usr/local/bin/ssr
+        echo "删除:/usr/local/SSR-Bash-Python"
+        rm -rf /usr/local/SSR-Bash-Python
+        echo "删除:/usr/local/shadowsocksr"
+        rm -rf /usr/local/shadowsocksr
+        echo "删除:${PWD}/install.sh"
+        rm -f ${PWD}/install.sh
         echo "清理杂项!"
         crontab -l > ~/crontab.bak 1>/dev/null 2>&1
         sed -i "/timelimit.sh/d" ~/crontab.bak 1>/dev/null 2>&1
         crontab ~/crontab.bak 1>/dev/null 2>&1
         rm -rf ~/crontab.bak
-		sleep 1s
-		echo "卸载完成!!"
-		exit 0
-	fi
+        sleep 1s
+        echo "卸载完成!!"
+        exit 0
+    fi
     if [[ ! $yn == n ]];then
         if [[ ! -e /usr/local/SSR-Bash-Python/version.txt ]];then
-        	yn="y"
+            yn="y"
         fi
     fi
     if [[ ${yn} == [yY] ]];then
@@ -194,14 +236,14 @@ if [ -e /usr/local/bin/ssr ];then
             mv /usr/local/mudb.json /usr/local/shadowsocksr/mudb.json
         fi
     fi
-	echo "开始更新"
-	sleep 1s
-	echo "正在清理老版本"
-	rm -f /usr/local/bin/ssr
-	sleep 1s
-	echo "开始部署"
-	cd /usr/local/shadowsocksr
-	git pull
+    echo "开始更新"
+    sleep 1s
+    echo "正在清理老版本"
+    rm -f /usr/local/bin/ssr
+    sleep 1s
+    echo "开始部署"
+    cd /usr/local/shadowsocksr
+    git pull
     git checkout manyuser
     if [[ $1 == "develop" ]];then
         git checkout stack/dev
@@ -234,12 +276,12 @@ fi
 cd /usr/local/shadowsocksr
 bash initcfg.sh
 if [[ ! -e /usr/bin/bc ]];then
-	if [[ ${OS} == CentOS ]];then
-		yum install bc -y
-	fi
-	if [[ ${OS} == Ubuntu || ${OS} == Debian ]];then
-		apt-get install bc -y
-	fi
+    if [[ ${OS} == CentOS ]];then
+        yum install bc -y
+    fi
+    if [[ ${OS} == Ubuntu || ${OS} == Debian ]];then
+        apt-get install bc -y
+    fi
 fi
 if [[ ${bashinstall} == "no" ]]; then
 
@@ -307,11 +349,11 @@ fi
 fi
 #Install SSR-Bash Background
 if [[ $1 == "develop" ]];then
-	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/scssw/SSR-Bash-Python/master/ssr
-	chmod +x /usr/local/bin/ssr
+    wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/scssw/SSR-Bash-Python/master/ssr
+    chmod +x /usr/local/bin/ssr
 else
-	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/scssw/SSR-Bash-Python/master/ssr
-	chmod +x /usr/local/bin/ssr
+    wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/scssw/SSR-Bash-Python/master/ssr
+    chmod +x /usr/local/bin/ssr
 fi
 
 #Modify ShadowsocksR API
@@ -330,25 +372,25 @@ if [[ $1 == develop ]];then
         cd /usr/local/SSR-Bash-Python
         read -n 1 -t 3 -p "你是否想要重新配置服务器巡检配置（注意，这将会清空你的日志）[Y/N]" yn
         if [[ $yn == [Yy] ]];then
-        	bash servercheck.sh reconf
-        	nohup bash servercheck.sh run 2>/dev/null &
+            bash servercheck.sh reconf
+            nohup bash servercheck.sh run 2>/dev/null &
         else
-        	bash servercheck.sh stop
-        	nohup bash servercheck.sh run 2>/dev/null &
+            bash servercheck.sh stop
+            nohup bash servercheck.sh run 2>/dev/null &
             echo "服务已重启"
         fi
     else
         read -t 10 -p "是否设置服务器自检，实验型功能！[Y/N]" yn
         if [[ $yn == [yY] ]];then
-        	cd /usr/local/SSR-Bash-Python
-        	bash servercheck.sh conf
-        	nohup bash servercheck.sh run 2>/dev/null &
-        	PID=$(ps -ef |grep -v grep | grep "bash" | grep "servercheck.sh" | grep "run" | awk '{print $2}')
-        	if [[ -z ${PID} ]];then
-            	echo "程序启动失败,请联系作者"
+            cd /usr/local/SSR-Bash-Python
+            bash servercheck.sh conf
+            nohup bash servercheck.sh run 2>/dev/null &
+            PID=$(ps -ef |grep -v grep | grep "bash" | grep "servercheck.sh" | grep "run" | awk '{print $2}')
+            if [[ -z ${PID} ]];then
+                echo "程序启动失败,请联系作者"
             fi
         else
-        	echo "你居然拒绝了T.T"
+            echo "你居然拒绝了T.T"
         fi
     fi
     checkcron=$(crontab -l 2>/dev/null | grep "timelimit.sh")
