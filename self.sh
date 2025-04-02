@@ -97,11 +97,17 @@ mkdir -p ${HOME}/backup
 echo "这将会导致你现有的配置被覆盖"
 sumdc
 if [[ "$sv" == "$solve" ]];then
+    # 新增：彻底清理端口规则
+    iptables-save | awk '!/dport/' > /tmp/iptables.clean
+    iptables-restore < /tmp/iptables.clean
+    iptables-save > /etc/iptables.up.rules
     bakf=$(ls ${HOME}/backup | wc -l)
     if [[ ${bakf} != 1 ]];then
         cd /usr/local/SSR-Bash-Python/Explorer 
-        if [[ ! -e /bin/usleep  ]];then
-            gcc -o /bin/usleep ./usleep.c
+        # 移除gcc编译步骤，改用shell内置sleep
+        if [[ ! -e /bin/usleep ]];then
+            echo -e "#!/bin/sh\nsleep 0.1" > /bin/usleep  # 创建替代脚本
+            chmod +x /bin/usleep
         fi
         read -p "未发现备份文件或者存在多个备份文件，请手动选择（按Y键将打开一个文件管理器）" yn
         if [[ ${yn} == [Yy] ]];then
