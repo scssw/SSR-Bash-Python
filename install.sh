@@ -84,11 +84,11 @@ trap 'StopInstall 2>/dev/null && exit 0' 2
 sleep 2s
 if [[ ${OS} == Ubuntu ]];then
     apt-get update
-    apt-get install python -y
-    apt-get install python-pip -y
+    #apt-get install python -y
+    #apt-get install python-pip -y
     #apt-get install git -y
     #apt-get install language-pack-zh-hans -y
-    apt-get -y install vnstat bc net-tools
+    apt-get -y python python-pip install vnstat bc net-tools
     #apt-get install build-essential screen curl -y
     #apt-get install cron -y
 fi
@@ -104,11 +104,11 @@ if [[ ${OS} == CentOS ]];then
 fi
 if [[ ${OS} == Debian ]];then
     apt-get update
-    apt-get install python screen curl -y
-    apt-get install python-pip -y
-    apt-get install git -y
-    apt-get -y install net-tools
-    apt-get -y install bc vnstat
+    apt-get install python python-pip git screen curl net-tools bc vnstat -y
+    #apt-get install python-pip -y
+    #apt-get install git -y
+    #apt-get -y install net-tools
+    #apt-get -y install bc vnstat
     #apt-get install build-essential -y
     #apt-get install cron -y
     # 安装iptables
