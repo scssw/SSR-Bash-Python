@@ -48,19 +48,33 @@ fi
 }
 
 echo
-echo "*******************"
-echo ""
-echo -e "欢迎使用 AR (Python Base) Beta\n"
-echo -e "每日一言：霉运退散"
-echo "输入数字选择功能："
-echo ""
-echo "1.服务器控制"
-echo "2.用户管理"
-echo "3.全局流量管理"
-echo "4.巡检系统"
-echo "5.程序管理"
-echo "6.一键添加用户(使用最优配置)"
-echo "0.退出程序"
+
+echo -e "\e[38;5;198m霉\e[38;5;202m运\e[38;5;208m退\e[38;5;214m散\e[0m，\e[38;5;220m原\e[38;5;226m地\e[38;5;190m起\e[38;5;82m飞\e[0m"
+
+# 预定义彩虹色数组
+# 调整后的渐变色数组（红→黄→绿→蓝）
+colors=("202" "208" "214" "220" "226" "190" "118" "46" "33" "21")
+index=0
+
+menu_items=(
+    "1. 服务器控制   "
+    "2. 用户管理     "
+    "3. 流量管理     "
+    "4. 域名绑定     "
+    "5. 程序管理     "
+    "6. 快速添户     "
+    "0. 退出系统     "
+)
+
+# 打印带边框的菜单
+echo -e "\e[38;5;245m┌──────────────────┐\e[0m"
+for item in "${menu_items[@]}"; do
+    color=${colors[index]}
+    printf "\e[38;5;245m│\e[0m \e[38;5;${color}m%-18s\e[0m \e[38;5;245m│\e[0m\n" "$item"
+    ((index = (index + 1) % ${#colors[@]}))
+done
+echo -e "\e[38;5;245m└──────────────────┘\e[0m"
+echo -e "\e[1;36m====================\e[0m"
 while :; do echo
 	read -p "请选择： " choice
 	if [[ ! $choice =~ ^[0-6]$ ]]; then
@@ -89,7 +103,27 @@ if [[ $choice == 3 ]];then
 fi
 
 if [[ $choice == 4 ]];then
-	bash /usr/local/SSR-Bash-Python/server.sh
+	clear
+	current_ip=$(cat /usr/local/shadowsocksr/myip.txt)
+	echo -e "当前绑定域名/IP: \e[32m$current_ip\e[0m"
+	read -p "请输入新域名/IP（直接回车使用自动检测IP）： " domain
+	
+	if [[ -z "$domain" ]]; then
+		domain=$(curl -s https://ipinfo.io/ip)
+		echo "已自动获取IP: $domain"
+	fi
+	
+	# 简单域名格式验证
+	# 修正后的域名验证逻辑
+	if [[ "$domain" =~ ^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$ ]] || [[ "$domain" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+	echo "$domain" > /usr/local/shadowsocksr/myip.txt
+	echo -e "\e[32m绑定成功！\e[0m"
+	else
+	echo -e "\e[31m格式错误！有效格式：\n1. IPv4地址（如1.1.1.1）\n2. 域名（如example.com或sub.domain.net）\e[0m"
+	fi
+	
+	read -n 1 -p "按任意键返回主菜单..."
+	ssr
 fi	
 
 if [[ $choice == 5 ]];then
