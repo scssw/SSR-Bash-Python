@@ -84,13 +84,13 @@ trap 'StopInstall 2>/dev/null && exit 0' 2
 sleep 2s
 if [[ ${OS} == Ubuntu ]];then
     apt-get update
-    apt-get install python -y
+    apt-get -y install python screen
     apt-get install python-pip -y
     apt-get install git -y
     #apt-get install language-pack-zh-hans -y
     apt-get -y install bc vnstat
-    apt-get -y install build-essential screen curl
-    apt-get install net-tools -y
+    apt-get -y install build-essential
+    #apt-get install net-tools -y
 fi
 if [[ ${OS} == CentOS ]];then
     yum install python screen curl -y
@@ -98,7 +98,7 @@ if [[ ${OS} == CentOS ]];then
     yum install git -y
     yum install bc -y
     yum install vnstat -y
-    yum install net-tools -y
+    #yum install net-tools -y
     yum groupinstall "Development Tools" -y
     yum install vixie-cron crontabs -y
 fi
