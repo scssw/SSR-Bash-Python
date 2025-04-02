@@ -83,15 +83,15 @@ echo "开始部署"
 trap 'StopInstall 2>/dev/null && exit 0' 2
 sleep 2s
 if [[ ${OS} == Ubuntu ]];then
-    apt-get update
-    apt-get install python -y
-    apt-get install python-pip -y
-    #apt-get install git -y
-    #apt-get install language-pack-zh-hans -y
-    apt-get -y install vnstat bc
-    apt-get -y install net-tools
-    #apt-get install build-essential screen curl -y
-    #apt-get install cron -y
+    if ! which apt-fast >/dev/null 2>&1; then
+        apt-get update
+        apt-get install -y software-properties-common
+        add-apt-repository -y ppa:apt-fast/stable
+        apt-get update
+        apt-get install -y apt-fast
+    fi
+    apt-fast update
+    apt-fast install -y python python-pip vnstat bc net-tools
 fi
 if [[ ${OS} == CentOS ]];then
     yum install python screen curl -y
