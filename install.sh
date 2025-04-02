@@ -88,7 +88,7 @@ if [[ ${OS} == Ubuntu ]];then
     #apt-get install python-pip -y
     #apt-get install git -y
     #apt-get install language-pack-zh-hans -y
-    apt-get -y python python-pip install vnstat bc net-tools
+    apt-get -y python python-pip install vnstat bc net-tools build-essential
     #apt-get install build-essential screen curl -y
     #apt-get install cron -y
 fi
@@ -107,9 +107,7 @@ if [[ ${OS} == Debian ]];then
     apt-get install python screen curl -y
     apt-get install python-pip -y
     apt-get install git -y
-    apt-get -y install net-tools
-    apt-get -y install bc vnstat
-    #apt-get install build-essential -y
+    apt-get -y install bc vnstat net-tools build-essential
     #apt-get install cron -y
     # 安装iptables
     apt-get install -y iptables
