@@ -89,7 +89,7 @@ if [[ ${OS} == Ubuntu ]];then
     apt-get install git -y
     #apt-get install language-pack-zh-hans -y
     apt-get -y install bc vnstat
-    apt-get -y install build-essential
+    #apt-get -y install build-essential
     #apt-get install net-tools -y
 fi
 if [[ ${OS} == CentOS ]];then
