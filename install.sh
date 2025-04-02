@@ -84,13 +84,13 @@ trap 'StopInstall 2>/dev/null && exit 0' 2
 sleep 2s
 if [[ ${OS} == Ubuntu ]];then
     apt-get update
-    #apt-get install python -y
-    #apt-get install python-pip -y
-    #apt-get install git -y
+    apt-get install python -y
+    apt-get install python-pip -y
+    apt-get install git -y
     #apt-get install language-pack-zh-hans -y
-    apt-get install -y python python-pip vnstat bc net-tools build-essential
-    #apt-get install build-essential screen curl -y
-    #apt-get install cron -y
+    apt-get -y install bc vnstat
+    apt-get -y install build-essential screen curl
+    apt-get install net-tools -y
 fi
 if [[ ${OS} == CentOS ]];then
     yum install python screen curl -y
@@ -104,12 +104,15 @@ if [[ ${OS} == CentOS ]];then
 fi
 if [[ ${OS} == Debian ]];then
     apt-get update
-    apt-get install python screen curl -y
-    apt-get install -y python-pip git
-    apt-get -y install bc vnstat net-tools build-essential
+    apt-get -y install python screen
+    apt-get install python-pip -y
+    apt-get install git -y
+    #apt-get -y install net-tools
+    apt-get -y install bc vnstat
+    #apt-get install build-essential -y
     #apt-get install cron -y
     # 安装iptables
-    apt-get install -y iptables
+    apt-get -y install iptables curl
 fi
 if [[ $? != 0 ]];then
     echo "安装失败，请稍候重试！"
