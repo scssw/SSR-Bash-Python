@@ -48,7 +48,8 @@ echo "自动添加用户，用户名: $uname, 密码: $upass"
 
 while :;do
   uport=$(rand 1000 65535)
-  port=`netstat -anlt | awk '{print $4}' | sed -e '1,2d' | awk -F : '{print $NF}' | sort -n | uniq | grep "$uport"`
+  # 修改端口检测部分（原L51附近）
+  port=`ss -ntl | awk '{print $4}' | awk -F : '{print $NF}' | sort -nu | grep "$uport"`
   if [[ -z ${port} ]];then
     break
   fi
