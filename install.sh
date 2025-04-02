@@ -108,7 +108,7 @@ if [[ ${OS} == Debian ]];then
     apt-get install python screen curl -y
     apt-get install python-pip -y
     apt-get install git -y
-    #apt-get -y install net-tools
+    apt-get -y install net-tools
     apt-get -y install bc vnstat
     #apt-get install build-essential -y
     #apt-get install cron -y
