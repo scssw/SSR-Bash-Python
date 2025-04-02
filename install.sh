@@ -104,7 +104,7 @@ if [[ ${OS} == CentOS ]];then
 fi
 if [[ ${OS} == Debian ]];then
     apt-get update
-    apt-get install python python-pip git screen curl net-tools bc vnstat -y
+    apt-get install python python-pip git curl net-tools bc vnstat -y
     #apt-get install python-pip -y
     #apt-get install git -y
     #apt-get -y install net-tools
