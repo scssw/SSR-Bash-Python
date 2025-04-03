@@ -75,9 +75,13 @@ for item in "${menu_items[@]}"; do
 done
 echo -e "\e[38;5;245m└──────────────────┘\e[0m"
 echo -e "\e[1;36m====================\e[0m"
+echo -e "\e[38;5;245m提示: 按回车键退出\e[0m"
 while :; do echo
 	read -p "请选择： " choice
-	if [[ ! $choice =~ ^[0-6]$ ]]; then
+	if [[ -z $choice ]]; then
+		echo "已退出系统"
+		exit 0
+	elif [[ ! $choice =~ ^[0-6]$ ]]; then
 		echo "输入错误! 请输入正确的数字!"
 	else
 		echo 
