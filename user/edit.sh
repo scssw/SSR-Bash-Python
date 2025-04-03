@@ -445,31 +445,87 @@ if [[ $ec == 11 ]];then
 	userlimit="/usr/local/SSR-Bash-Python/timelimit.db"
 	if [[ ${lsid} == 1 ]];then
 		port=$(python mujson_mgr.py -l -u ${uid} | grep "port :" | awk -F" : " '{ print $2 }')
-		datelimit=$(cat ${userlimit} | grep "${port}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9\}2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
+		datelimit=$(cat ${userlimit} | grep "${port}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
 		if [[ -z ${datelimit} ]];then
 			datelimit="永久"
 		fi
 		echo -e "当前用户端口号：${port},有效期至：${datelimit}\n"
-		read -p "请输入新的有效期(单位：月[m]日[d]小时[h],例如：1个月就输入1m){默认：永久[a]}: " limit
+		read -p "请输入新的有效期(格式：年.月.日如25.5.12表示2025年5月12日，或月[m]日[d]小时[h]如1m表示1个月){默认：永久[a]}: " limit
 		if [[ -z ${limit} ]];then
 			limit="a"
+		# 检测是否为年.月.日格式 (如 25.5.12)
+		elif [[ $limit =~ ^[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then
+			# 提取年月日
+			year=$(echo $limit | cut -d. -f1)
+			month=$(echo $limit | cut -d. -f2)
+			day=$(echo $limit | cut -d. -f3)
+			
+			# 获取当前小时和分钟
+			current_hour=$(date +"%H")
+			current_min=$(date +"%M")
+			
+			# 构建完整日期字符串 (20年.月.日时分)
+			full_year="20${year}"
+			# 确保月和日是两位数
+			month=$(printf "%02d" $month)
+			day=$(printf "%02d" $day)
+			
+			# 直接设置为完整日期格式，不通过timelimit.sh的参数处理
+			echo "${port}:${full_year}${month}${day}${current_hour}${current_min}" > /tmp/tempdate.txt
+			sed -i "/^${port}:/d" ${userlimit}
+			cat /tmp/tempdate.txt >> ${userlimit}
+			rm -f /tmp/tempdate.txt
+			limit="setok" # 标记已设置，避免再次调用timelimit.sh
 		fi
-		bash /usr/local/SSR-Bash-Python/timelimit.sh e ${port} ${limit} 
+		
+		# 只有在未直接设置日期时才调用timelimit.sh
+		if [[ $limit != "setok" ]]; then
+			bash /usr/local/SSR-Bash-Python/timelimit.sh e ${port} ${limit}
+		fi
 	fi
+	
 	if [[ ${lsid} == 2 ]];then
-		datelimit=$(cat ${userlimit} | grep "${uid}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9\}2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
+		datelimit=$(cat ${userlimit} | grep "${uid}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
 		if [[ -z ${datelimit} ]];then
 			datelimit="永久"
 		fi
 		echo -e "当前用户端口号：${uid},有效期至：${datelimit}\n"
-		read -p "请输入新的有效期(单位：月[m]日[d]小时[h],例如：1个月就输入1m){默认：永久[a]}: " limit
+		read -p "请输入新的有效期(格式：年.月.日如25.5.12表示2025年5月12日，或月[m]日[d]小时[h]如1m表示1个月){默认：永久[a]}: " limit
 		if [[ -z ${limit} ]];then
 			limit="a"
+		# 检测是否为年.月.日格式 (如 25.5.12)
+		elif [[ $limit =~ ^[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then
+			# 提取年月日
+			year=$(echo $limit | cut -d. -f1)
+			month=$(echo $limit | cut -d. -f2)
+			day=$(echo $limit | cut -d. -f3)
+			
+			# 获取当前小时和分钟
+			current_hour=$(date +"%H")
+			current_min=$(date +"%M")
+			
+			# 构建完整日期字符串 (20年.月.日时分)
+			full_year="20${year}"
+			# 确保月和日是两位数
+			month=$(printf "%02d" $month)
+			day=$(printf "%02d" $day)
+			
+			# 直接设置为完整日期格式，不通过timelimit.sh的参数处理
+			echo "${uid}:${full_year}${month}${day}${current_hour}${current_min}" > /tmp/tempdate.txt
+			sed -i "/^${uid}:/d" ${userlimit}
+			cat /tmp/tempdate.txt >> ${userlimit}
+			rm -f /tmp/tempdate.txt
+			limit="setok" # 标记已设置，避免再次调用timelimit.sh
 		fi
-		bash /usr/local/SSR-Bash-Python/timelimit.sh e ${uid} ${limit}
+		
+		# 只有在未直接设置日期时才调用timelimit.sh
+		if [[ $limit != "setok" ]]; then
+			bash /usr/local/SSR-Bash-Python/timelimit.sh e ${uid} ${limit}
+		fi
 		port=${uid}
 	fi
-	datelimit=$(cat ${userlimit} | grep "${port}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9\}2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
+	
+	datelimit=$(cat ${userlimit} | grep "${port}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
 	if [[ -z ${datelimit} ]];then
 		datelimit="永久"
 	fi
