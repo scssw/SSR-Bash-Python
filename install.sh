@@ -42,7 +42,7 @@ else
 fi
 
 StopInstall(){
-    echo -e "\n安装中断,开始清理文件!"
+    echo -e "\nInstallation aborted and started cleaning files!"
     sleep 1s
     rm -rf /usr/local/bin/ssr
     rm -rf /usr/local/SSR-Bash-Python
@@ -67,7 +67,7 @@ StopInstall(){
         rm -rf ~/crontab.bak
     fi
     rm -rf $0
-    echo "清理完成!"
+    echo "Cleaned up!"
 }
 
 #Get Current Directory
@@ -76,10 +76,10 @@ workdir=$(pwd)
 #Install Basic Tools
 if [ ! -e /usr/local/bin/ssr ];then
 if [[ $1 == "uninstall" ]];then
-	echo "你在开玩笑吗？你都没有安装怎么卸载呀！"
+	echo "Are you joking? How to uninstall without you installing！"
 	exit 1
 fi
-echo "开始部署"
+echo "Start deployment"
 trap 'StopInstall 2>/dev/null && exit 0' 2
 sleep 2s
 if [[ ${OS} == Ubuntu ]];then
@@ -114,16 +114,16 @@ if [[ ${OS} == Debian ]];then
     apt-get install cron -y
 fi
 if [[ $? != 0 ]];then
-    echo "安装失败，请稍候重试！"
+    echo "Installation failed, please try again later！"
     exit 1 
 fi
 #Install Libsodium
 libsodiumfilea="/usr/local/lib/libsodium.so"
 libsodiumfileb="/usr/lib/libsodium.so"
 if [[ -e ${libsodiumfilea} ]];then
-    echo "libsodium已安装!"
+    echo "libsodium It has been installed!"
 elif [[ -e ${libsodiumfileb} ]];then
-    echo "libsodium已安装!"
+    echo "libsodium It has been installed!"
 else
     cd $workdir
     export LIBSODIUM_VER=1.0.16
@@ -136,12 +136,12 @@ else
     ldconfig
     cd $workdir && rm -rf libsodium-$LIBSODIUM_VER.tar.gz libsodium-$LIBSODIUM_VER
 #    if [[ ! -e ${libsodiumfile} ]];then
-#    	echo "libsodium安装失败 !"
+#    	echo "libsodium installation failed!"
 #    	exit 1
 #    fi
 fi
 cd /usr/local
-git clone https://github.com/shadowsocksr-backup/shadowsocksr
+git clone https://github.com/johndesu090/shadowsocksr
 cd ./shadowsocksr
 git checkout manyuser
 git pull
@@ -153,23 +153,23 @@ fi
 #Install SSR and SSR-Bash
 if [ -e /usr/local/bin/ssr ];then
 	if [[ $1 == "uninstall" ]];then
-		echo "开始卸载"
+		echo "Start uninstall"
 		sleep 1s
-		echo "删除:/usr/local/bin/ssr"
+		echo "Delete:/usr/local/bin/ssr"
 		rm -f /usr/local/bin/ssr
-		echo "删除:/usr/local/SSR-Bash-Python"
+		echo "Delete:/usr/local/SSR-Bash-Python"
 		rm -rf /usr/local/SSR-Bash-Python
-		echo "删除:/usr/local/shadowsocksr"
+		echo "Delete:/usr/local/shadowsocksr"
 		rm -rf /usr/local/shadowsocksr
-		echo "删除:${PWD}/install.sh"
+		echo "Delete:${PWD}/install.sh"
 		rm -f ${PWD}/install.sh
-        echo "清理杂项!"
+        echo "Clean up miscellaneous!"
         crontab -l > ~/crontab.bak 1>/dev/null 2>&1
         sed -i "/timelimit.sh/d" ~/crontab.bak 1>/dev/null 2>&1
         crontab ~/crontab.bak 1>/dev/null 2>&1
         rm -rf ~/crontab.bak
 		sleep 1s
-		echo "卸载完成!!"
+		echo "Uninstall complete!!"
 		exit 0
 	fi
     if [[ ! $yn == n ]];then
@@ -181,7 +181,7 @@ if [ -e /usr/local/bin/ssr ];then
         mv /usr/local/shadowsocksr/mudb.json /usr/local/mudb.json
         rm -rf /usr/local/shadowsocksr
         cd /usr/local
-        git clone https://github.com/shadowsocksr-backup/shadowsocksr
+        git clone https://github.com/johndesu090/shadowsocksr
         if [[ $1 == develop ]];then
             cd ./shadowsocksr
             git checkout stack/dev
@@ -192,12 +192,12 @@ if [ -e /usr/local/bin/ssr ];then
             mv /usr/local/mudb.json /usr/local/shadowsocksr/mudb.json
         fi
     fi
-	echo "开始更新"
+	echo "Start Update"
 	sleep 1s
-	echo "正在清理老版本"
+	echo "Cleaning up older versions"
 	rm -f /usr/local/bin/ssr
 	sleep 1s
-	echo "开始部署"
+	echo "Start deployment"
 	cd /usr/local/shadowsocksr
 	git pull
     git checkout manyuser
@@ -209,7 +209,7 @@ if [[ -d /usr/local/SSR-Bash-Python ]];then
     if [[ $yn == [yY] ]];then
         rm -rf /usr/local/SSR-Bash-Python
         cd /usr/local
-        git clone https://github.com/HeroSixo4/SSR-Bash-Python.git
+        git clone https://github.com/johndesu090/SSR-Bash-Python.git
     fi
     cd /usr/local/SSR-Bash-Python
     git checkout master
@@ -220,7 +220,7 @@ if [[ -d /usr/local/SSR-Bash-Python ]];then
     fi
 else
     cd /usr/local
-    git clone https://github.com/HeroSixo4/SSR-Bash-Python.git
+    git clone https://github.com/johndesu090/SSR-Bash-Python.git	
     cd SSR-Bash-Python
     git checkout master
     if [[ $1 == "develop" ]];then
@@ -305,10 +305,10 @@ fi
 fi
 #Install SSR-Bash Background
 if [[ $1 == "develop" ]];then
-	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/HeroSixo4/SSR-Bash-Python/master/ssr
+	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/johndesu090/SSR-Bash-Python/master/ssr
 	chmod +x /usr/local/bin/ssr
 else
-	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/HeroSixo4/SSR-Bash-Python/master/ssr
+	wget -q -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/johndesu090/SSR-Bash-Python/master/ssr
 	chmod +x /usr/local/bin/ssr
 fi
 
@@ -318,7 +318,7 @@ sed -i "s/sspanelv2/mudbjson/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/UPDATE_TIME = 60/UPDATE_TIME = 10/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/SERVER_PUB_ADDR = '${nowip}'/SERVER_PUB_ADDR = '$(wget -qO- -t1 -T2 ipinfo.io/ip)'/" /usr/local/shadowsocksr/userapiconfig.py
 #INstall Success
-read -t 20 -p "输入与您主机绑定的域名(请在20秒内输入，超时将跳过本步骤.默认填入本机IP): " ipname
+read -t 20 -p "Enter the domain name bound to your host (please enter it within 20 seconds, this step will skip this step. The local IP is filled in by default): " ipname
 if [[ -z ${ipname} ]];then
     ipname=$(wget -qO- -t1 -T2 ipinfo.io/ip)
 fi
@@ -326,27 +326,27 @@ echo "$ipname" > /usr/local/shadowsocksr/myip.txt
 if [[ $1 == develop ]];then
     if [[ -e /usr/local/SSR-Bash-Python/check.log ]];then
         cd /usr/local/SSR-Bash-Python
-        read -n 1 -t 3 -p "你是否想要重新配置服务器巡检配置（注意，这将会清空你的日志）[Y/N]" yn
+        read -n 1 -t 3 -p "Do you want to reconfigure the server inspection configuration (note that this will clear your logs)[Y/N]" yn
         if [[ $yn == [Yy] ]];then
         	bash servercheck.sh reconf
         	nohup bash servercheck.sh run 2>/dev/null &
         else
         	bash servercheck.sh stop
         	nohup bash servercheck.sh run 2>/dev/null &
-            echo "服务已重启"
+            echo "Service restarted"
         fi
     else
-        read -t 10 -p "是否设置服务器自检，实验型功能！[Y/N]" yn
+        read -t 10 -p "Whether to set server self-test, experimental function！[Y/N]" yn
         if [[ $yn == [yY] ]];then
         	cd /usr/local/SSR-Bash-Python
         	bash servercheck.sh conf
         	nohup bash servercheck.sh run 2>/dev/null &
         	PID=$(ps -ef |grep -v grep | grep "bash" | grep "servercheck.sh" | grep "run" | awk '{print $2}')
         	if [[ -z ${PID} ]];then
-            	echo "程序启动失败"
+            	echo "The program failed to start, please contact the developer"
             fi
         else
-        	echo "你居然拒绝了T.T"
+        	echo "You actually rejected T.T"
         fi
     fi
     checkcron=$(crontab -l 2>/dev/null | grep "timelimit.sh")
@@ -362,12 +362,18 @@ if [[ -e /etc/sysconfig/iptables-config ]];then
         ipconf=$(cat /etc/sysconfig/iptables-config | grep 'IPTABLES_MODULES_UNLOAD="no"')
         if [[ -z ${ipconf} ]];then
                 sed -i 's/IPTABLES_MODULES_UNLOAD="yes"/IPTABLES_MODULES_UNLOAD="no"/g' /etc/sysconfig/iptables-config
-                echo "安装完成，准备重启"
-                sleep 3s
+                echo "Installation is complete, rebooting server in 5 seconds"
+                sleep 5s
                 reboot
         fi
 fi
 bash /usr/local/SSR-Bash-Python/self-check.sh
-echo '安装完成！输入 ssr 即可使用本程序~'
+echo 'The installation is complete! Enter ssr to use this program ~'
 if [[ ${check} != "yes" ]] ;then
-        echo "如果你执行 ssr 提示找不到命令，请尝试退出并重新登录来解决"
+        echo "If you run ssr and can't find the command, please try to log out and log in again."
+fi
+echo 'The original author has stopped this script update. This version is a magic change from the last version before the author deletion.'
+echo 'Dont like spraying!'
+echo 'Use with caution! Research only！'
+echo 'Use with caution! Research only！'
+echo 'Use with caution! Research only！'
