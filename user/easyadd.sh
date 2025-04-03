@@ -155,7 +155,7 @@ ssr_link="ssr://${encoded_server}"
 
 echo "你可以复制以下信息给你的用户: "
 echo "===================="
-echo "$ssr_link"
+echo -e "\033[1;32m$ssr_link\033[0m"  # 修改此处行号
 echo ""
 echo "用户名: $uname"
 echo "备注: $remark"
