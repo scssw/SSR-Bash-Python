@@ -69,16 +69,44 @@ iflimittime="y"
 echo "是否需要限制帐号有效期(y/n) [默认: y]: y"
 
 if [[ ${iflimittime} == y ]]; then
-    read -p "请输入有效期(单位：月[m]日[d]小时[h],例如：1个月就输入1m){默认：一个月}: " limit
+    read -p "请输入有效期(格式：年.月.日如25.5.12表示2025年5月12日，或月[m]日[d]小时[h]如1m表示1个月){默认：一个月}: " limit
     if [[ -z ${limit} ]]; then
         limit="1m"
+    # 检测是否为年.月.日格式 (如 25.5.12)
+    elif [[ $limit =~ ^[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}$ ]]; then
+        # 提取年月日
+        year=$(echo $limit | cut -d. -f1)
+        month=$(echo $limit | cut -d. -f2)
+        day=$(echo $limit | cut -d. -f3)
+        
+        # 获取当前小时和分钟
+        current_hour=$(date +"%H")
+        current_min=$(date +"%M")
+        
+        # 构建完整日期字符串 (20年.月.日时分)
+        full_year="20${year}"
+        # 确保月和日是两位数
+        month=$(printf "%02d" $month)
+        day=$(printf "%02d" $day)
+        
+        # 直接设置为完整日期格式，不通过timelimit.sh的参数处理
+        echo "${uport}:${full_year}${month}${day}${current_hour}${current_min}" > /tmp/tempdate.txt
+        sed -i "/^${uport}:/d" /usr/local/SSR-Bash-Python/timelimit.db
+        cat /tmp/tempdate.txt >> /usr/local/SSR-Bash-Python/timelimit.db
+        rm -f /tmp/tempdate.txt
+        limit="setok" # 标记已设置，避免再次调用timelimit.sh
     fi
-    bash /usr/local/SSR-Bash-Python/timelimit.sh a ${uport} ${limit}
+    
+    # 只有在未直接设置日期时才调用timelimit.sh
+    if [[ $limit != "setok" ]]; then
+        bash /usr/local/SSR-Bash-Python/timelimit.sh a ${uport} ${limit}
+    fi
+    
     datelimit=$(cat /usr/local/SSR-Bash-Python/timelimit.db | grep "${uport}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
 fi
 
 if [[ -z ${datelimit} ]]; then
-    datelimit="12m"
+    datelimit="永久"
 fi
 
 if [[ ${OS} =~ ^Ubuntu$|^Debian$ ]];then
