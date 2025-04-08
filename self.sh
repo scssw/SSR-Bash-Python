@@ -175,6 +175,7 @@ fi
 #Show
 echo "输入数字选择功能："
 echo ""
+echo "3.端口段设置"
 echo "4.卸载程序"
 echo "5.备份配置"
 echo "6.还原配置"
@@ -185,13 +186,50 @@ echo "10.查看主机限速"
 echo "11.设置开机自启动主机限速"
 while :; do echo
 	read -p "请选择： " choice
-	if [[ ! $choice =~ ^([4-9]|10|11)$ ]]; then
+	if [[ ! $choice =~ ^([3-9]|10|11)$ ]]; then
 		[ -z "$choice" ] && ssr && break
 		echo "输入错误! 请输入正确的数字!"
 	else
 		break	
 	fi
 done
+if [[ $choice == 3 ]];then
+	echo "端口段设置："
+	echo "1.添加端口段"
+	echo "2.删除端口段"
+	read -p "请选择： " subchoice
+	if [[ $subchoice == 1 ]];then
+		read -p "请输入起始端口(1000-65535)：" start_port
+		read -p "请输入结束端口(1000-65535)：" end_port
+		if [[ $start_port =~ ^[0-9]+$ ]] && [[ $end_port =~ ^[0-9]+$ ]] && \
+		   [[ $start_port -ge 1000 ]] && [[ $start_port -le 65535 ]] && \
+		   [[ $end_port -ge 1000 ]] && [[ $end_port -le 65535 ]] && \
+		   [[ $start_port -le $end_port ]]; then
+			echo "$start_port-$end_port" >> /usr/local/SSR-Bash-Python/port_ranges.conf
+			echo "端口段添加成功！"
+		else
+			echo "输入错误！端口范围必须在1000-65535之间，且起始端口不能大于结束端口！"
+		fi
+	elif [[ $subchoice == 2 ]];then
+		if [[ ! -f /usr/local/SSR-Bash-Python/port_ranges.conf ]]; then
+			echo "暂无端口段配置"
+		else
+			echo "当前端口段列表："
+			cat /usr/local/SSR-Bash-Python/port_ranges.conf | grep -v '^#' | nl -s ". "
+			read -p "请输入要删除的端口段序号：" del_num
+			if [[ $del_num =~ ^[0-9]+$ ]]; then
+				sed -i "${del_num}d" /usr/local/SSR-Bash-Python/port_ranges.conf
+				echo "删除成功！"
+			else
+				echo "输入错误！请输入正确的序号！"
+			fi
+		fi
+	else
+		echo "输入错误！请输入正确的选项！"
+	fi
+	bash /usr/local/SSR-Bash-Python/self.sh
+fi
+
 if [[ $choice == 4 ]];then
 	echo "你在做什么？你真的这么狠心吗？"
 	sumdc
