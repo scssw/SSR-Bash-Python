@@ -46,11 +46,21 @@ upass=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 6)
 
 echo "自动添加用户，用户名: $uname, 密码: $upass"
 
-while :;do
-  uport=$(rand 1000 65535)
-  # 修改端口检测部分（原L51附近）
+# 从端口段配置文件中随机选择一个可用端口
+while :; do
+  if [[ ! -f /usr/local/SSR-Bash-Python/port_ranges.conf ]] || [[ ! -s /usr/local/SSR-Bash-Python/port_ranges.conf ]]; then
+    # 如果没有配置端口段，使用默认范围
+    uport=$(rand 1000 65535)
+  else
+    # 随机选择一个端口段
+    port_range=$(grep -v '^#' /usr/local/SSR-Bash-Python/port_ranges.conf | shuf -n 1)
+    start_port=$(echo $port_range | cut -d'-' -f1)
+    end_port=$(echo $port_range | cut -d'-' -f2)
+    uport=$(rand $start_port $end_port)
+  fi
+  # 检查端口是否已被使用
   port=`ss -ntl | awk '{print $4}' | awk -F : '{print $NF}' | sort -nu | grep "$uport"`
-  if [[ -z ${port} ]];then
+  if [[ -z ${port} ]]; then
     break
   fi
 done
