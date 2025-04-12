@@ -65,41 +65,50 @@ while :; do
   fi
 done
 
-while :; do echo
-  read -p "输入流量限制(只需输入数字，单位：GB)： " ut
-  if [[ "$ut" =~ ^(-?|\+?)[0-9]+(\.?[0-9]+)?$ ]];then
-     # 根据流量自动设置到期时间
-     if [[ $ut -eq 50 ]]; then
-        limit="1m"
-     elif [[ $ut -eq 150 ]]; then
-        limit="3m"
-     elif [[ $ut -eq 300 ]]; then
-        limit="6m"
-     elif [[ $ut -eq 600 ]]; then
-        limit="12m"
-     else
-        # 如果输入其他数值，询问是否需要设置帐号有效期
+# 检查参数
+if [[ $# -eq 2 ]]; then
+    # 如果提供了两个参数，直接使用它们
+    ut=$1
+    limit=$2
+    iflimittime="y"
+else
+    # 原有的交互式输入逻辑
+    while :; do echo
+      read -p "输入流量限制(只需输入数字，单位：GB)： " ut
+      if [[ "$ut" =~ ^(-?|\+?)[0-9]+(\.?[0-9]+)?$ ]];then
+         # 根据流量自动设置到期时间
+         if [[ $ut -eq 50 ]]; then
+            limit="1m"
+         elif [[ $ut -eq 150 ]]; then
+            limit="3m"
+         elif [[ $ut -eq 300 ]]; then
+            limit="6m"
+         elif [[ $ut -eq 600 ]]; then
+            limit="12m"
+         else
+            # 如果输入其他数值，询问是否需要设置帐号有效期
+            iflimittime="y"
+            echo "是否需要限制帐号有效期(y/n) [默认: y]: y"
+            if [[ ${iflimittime} == y ]]; then
+                read -p "请输入有效期(格式：年.月.日如25.5.12表示2025年5月12日，或月[m]日[d]小时[h]如1m表示1个月){默认：一个月}: " limit
+                if [[ -z ${limit} ]]; then
+                    limit="1m"
+                fi
+            fi
+         fi
+         break
+      else
+         echo 'Input Error!'
+      fi
+    done
+
+    # 询问是否需要设置帐号有效期（仅在非预设流量值时显示）
+    if [[ $ut -ne 50 ]] && [[ $ut -ne 150 ]] && [[ $ut -ne 300 ]] && [[ $ut -ne 600 ]]; then
         iflimittime="y"
         echo "是否需要限制帐号有效期(y/n) [默认: y]: y"
-        if [[ ${iflimittime} == y ]]; then
-            read -p "请输入有效期(格式：年.月.日如25.5.12表示2025年5月12日，或月[m]日[d]小时[h]如1m表示1个月){默认：一个月}: " limit
-            if [[ -z ${limit} ]]; then
-                limit="1m"
-            fi
-        fi
-     fi
-     break
-  else
-     echo 'Input Error!'
-  fi
-done
-
-# 询问是否需要设置帐号有效期（仅在非预设流量值时显示）
-if [[ $ut -ne 50 ]] && [[ $ut -ne 150 ]] && [[ $ut -ne 300 ]] && [[ $ut -ne 600 ]]; then
-    iflimittime="y"
-    echo "是否需要限制帐号有效期(y/n) [默认: y]: y"
-else
-    iflimittime="y"
+    else
+        iflimittime="y"
+    fi
 fi
 
 if [[ ${iflimittime} == y ]]; then
