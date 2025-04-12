@@ -4,17 +4,18 @@ export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # 检查是否为root用户
 [ $(id -u) != "0" ] && { echo "错误：必须使用root权限运行此脚本"; exit 1; }
 
-# 显示菜单
-echo "快速添加SSR用户"
-echo "================="
-echo "1. 月"
-echo "2. 季度"
-echo "3. 半年"
-echo "6. 年"
-echo "================="
+
+quote=$(curl -s https://v1.hitokoto.cn/?c=d | sed -n 's/.*"hitokoto":"\([^"]*\)".*/\1/p')
+echo -e "\e[1;36m$quote\e[0m"
+echo -e "\e[1;33m==============\e[0m"
+echo -e "\e[1;32m1. 月\e[0m"
+echo -e "\e[1;32m2. 季度\e[0m"
+echo -e "\e[1;32m3. 半年\e[0m"
+echo -e "\e[1;32m6. 年\e[0m"
+echo -e "\e[1;33m==============\e[0m"
 
 # 读取用户输入
-read -p "请选择套餐编号: " choice
+read -p "请选择: " choice
 
 # 根据选择设置流量和有效期
 case $choice in
