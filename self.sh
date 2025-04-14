@@ -194,7 +194,7 @@ while :; do echo
 	fi
 done
 
-if [[ $choice == 1 ]];then
+if [[ $choice == 1 ]];then..0
     bash /usr/local/SSR-Bash-Python/traffic_control.sh
     exit 0
 fi
