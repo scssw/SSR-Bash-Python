@@ -12,6 +12,7 @@ show_menu() {
     echo "2.取消流控限制"
     echo "3.手动执行流量监控"
     echo "4.查看流控日志"
+    echo "5.查看限速端口"
     echo "0.返回主菜单"
     echo "=================================="
 }
@@ -203,7 +204,7 @@ while true; do
                     echo "端口 \$port 当日流量(\$traffic_mb MB)超过阈值($traffic_limit MB)，开始限速..."
                     # 设置限速
                     limit_port_speed \$port 2000
-                    echo "\$(date '+%Y-%m-%d %H:%M:%S') - 端口 \$port 已限速，12小时后自动恢复"
+                    echo "\$(date '+%Y-%m-%d %H:%M:%S') - 端口 \$port 已限速，24小时后自动恢复"
                 else
                     echo "端口 \$port 在24小时内已被限速过，跳过限速"
                 fi
@@ -344,10 +345,79 @@ view_traffic_logs() {
     fi
 }
 
+# 查看限速端口
+view_limited_ports() {
+    if [ -f "/usr/local/SSR-Bash-Python/limit_record.json" ]; then
+        python -c "
+import json
+import time
+import math
+
+try:
+    # 读取限速记录
+    with open('/usr/local/SSR-Bash-Python/limit_record.json', 'r') as f:
+        limit_record = json.load(f)
+    
+    # 读取mudb.json获取速率信息
+    with open('/usr/local/shadowsocksr/mudb.json', 'r') as f:
+        data = json.load(f)
+        
+    # 获取当前时间
+    current_time = time.time()
+    
+    # 创建端口信息映射
+    port_speed_map = {}
+    for user in data:
+        port_speed_map[user['port']] = user['speed_limit_per_user']
+    
+    # 打印表头
+    print('================================================================================')
+    print('| {:<10} | {:<20} | {:<15} | {:<20} |'.format('端口', '限速开始时间', '当前速率 (Kbps)', '剩余时间'))
+    print('================================================================================')
+    
+    # 如果没有限速记录
+    if not limit_record:
+        print('| {:<74} |'.format('当前没有被限速的端口'))
+        print('================================================================================')
+    else:
+        # 遍历所有限速端口
+        for port_str, start_time in limit_record.items():
+            port = int(port_str)
+            
+            # 格式化开始时间
+            time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
+            
+            # 计算剩余时间（24小时后自动恢复）
+            elapsed_seconds = current_time - start_time
+            remaining_seconds = 24 * 3600 - elapsed_seconds
+            
+            if remaining_seconds <= 0:
+                remaining = '即将自动恢复'
+            else:
+                hours = math.floor(remaining_seconds / 3600)
+                minutes = math.floor((remaining_seconds % 3600) / 60)
+                remaining = '{}小时{}分钟'.format(hours, minutes)
+            
+            # 获取当前速率
+            speed = port_speed_map.get(port, '未知')
+            
+            # 打印一行数据
+            print('| {:<10} | {:<20} | {:<15} | {:<20} |'.format(port, time_str, speed, remaining))
+        
+        print('================================================================================')
+    
+except Exception as e:
+    print('处理限速记录时出错: {}'.format(e))
+"
+    else
+        echo "没有找到限速记录文件，目前没有被限速的端口"
+    fi
+}
+
 # 主程序
 while true; do
     show_menu
-    read -p "请选择选项 [0-4]: " option
+    read -p "请选择选项 [0-5]: " option
     case $option in
         0)
             echo "返回主菜单..."
@@ -365,6 +435,9 @@ while true; do
             ;;
         4)
             view_traffic_logs
+            ;;
+        5)
+            view_limited_ports
             ;;
         *)
             echo "无效选项！请重新选择"
