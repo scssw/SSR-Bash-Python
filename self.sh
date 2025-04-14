@@ -174,9 +174,9 @@ fi
 }
 #Show
 echo "输入数字选择功能："
-echo "1.流控管理"
+echo ""
 echo "3.端口段设置"
-echo "4.卸载程序（会丢失数据）"
+echo "4.卸载程序"
 echo "5.备份配置"
 echo "6.还原配置"
 echo "7.设置所有用户限速"
@@ -186,19 +186,13 @@ echo "10.查看主机限速"
 echo "11.设置开机自启动主机限速"
 while :; do echo
 	read -p "请选择： " choice
-	if [[ ! $choice =~ ^([1-9]|10|11)$ ]]; then
+	if [[ ! $choice =~ ^([3-9]|10|11)$ ]]; then
 		[ -z "$choice" ] && ssr && break
 		echo "输入错误! 请输入正确的数字!"
 	else
 		break	
 	fi
 done
-
-if [[ $choice == 1 ]];then..0
-    bash /usr/local/SSR-Bash-Python/traffic_control.sh
-    exit 0
-fi
-
 if [[ $choice == 3 ]];then
 	echo "端口段设置："
 	echo "1.添加端口段"
