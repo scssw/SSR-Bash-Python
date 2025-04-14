@@ -174,10 +174,9 @@ fi
 }
 #Show
 echo "输入数字选择功能："
-echo ""
-echo "1.流控设置"
+echo "1.流控管理"
 echo "3.端口段设置"
-echo "4.卸载程序"
+echo "4.卸载程序（会丢失数据）"
 echo "5.备份配置"
 echo "6.还原配置"
 echo "7.设置所有用户限速"
@@ -194,10 +193,12 @@ while :; do echo
 		break	
 	fi
 done
+
 if [[ $choice == 1 ]];then
     bash /usr/local/SSR-Bash-Python/traffic_control.sh
     exit 0
 fi
+
 if [[ $choice == 3 ]];then
 	echo "端口段设置："
 	echo "1.添加端口段"
