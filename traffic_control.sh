@@ -390,9 +390,26 @@ try:
         if 'port' in user:
             port_speed_map[user['port']] = user.get('speed_limit_per_user', '未设置')
     
+    # 过滤已过期的限速记录（超过24小时的）
+    expired_ports = []
+    for port_str, start_time in list(limit_record.items()):
+        try:
+            elapsed_seconds = current_time - float(start_time)
+            if elapsed_seconds >= 24 * 3600:  # 已过24小时
+                expired_ports.append(port_str)
+                del limit_record[port_str]
+        except (ValueError, TypeError):
+            pass
+    
+    # 如果有过期端口，更新限速记录文件
+    if expired_ports:
+        print('以下端口已超过24小时限速期，已自动移除：{}'.format(', '.join(expired_ports)))
+        with open('/usr/local/SSR-Bash-Python/limit_record.json', 'w') as f:
+            json.dump(limit_record, f, indent=4)
+    
     # 打印表头
     print('================================================================================')
-    print('| {:<10} | {:<20} | {:<15} | {:<20} |'.format('端口', '限速开始时间', '当前速率 (Kbps)', '剩余时间'))
+    print('| {:<10}   | {:<20}       | {:<15} | {:<20} |'.format('端口 ', '限速开始时间', '当前速率 (Kbps)', '剩余时间'))
     print('================================================================================')
     
     # 如果没有限速记录
@@ -413,7 +430,7 @@ try:
                 remaining_seconds = 24 * 3600 - elapsed_seconds
                 
                 if remaining_seconds <= 0:
-                    remaining = '即将自动恢复'
+                    remaining = '即将自动恢复'  # 这种情况不应该再发生，因为已经过滤了过期记录
                 else:
                     hours = int(remaining_seconds // 3600)
                     minutes = int((remaining_seconds % 3600) // 60)
