@@ -352,15 +352,33 @@ view_limited_ports() {
 import json
 import time
 import math
+import os
 
 try:
-    # 读取限速记录
-    with open('/usr/local/SSR-Bash-Python/limit_record.json', 'r') as f:
-        limit_record = json.load(f)
+    # 确保限速记录文件存在且格式正确
+    limit_record = {}
+    try:
+        if os.path.exists('/usr/local/SSR-Bash-Python/limit_record.json') and os.path.getsize('/usr/local/SSR-Bash-Python/limit_record.json') > 0:
+            with open('/usr/local/SSR-Bash-Python/limit_record.json', 'r') as f:
+                content = f.read().strip()
+                if content:  # 确保文件不为空
+                    limit_record = json.loads(content)
+    except ValueError:
+        # 如果JSON解析失败，创建一个新的空记录
+        limit_record = {}
+        # 重写文件，确保格式正确
+        with open('/usr/local/SSR-Bash-Python/limit_record.json', 'w') as f:
+            json.dump(limit_record, f)
     
     # 读取mudb.json获取速率信息
-    with open('/usr/local/shadowsocksr/mudb.json', 'r') as f:
-        data = json.load(f)
+    data = []
+    try:
+        if os.path.exists('/usr/local/shadowsocksr/mudb.json'):
+            with open('/usr/local/shadowsocksr/mudb.json', 'r') as f:
+                data = json.load(f)
+    except ValueError:
+        print('错误: mudb.json格式不正确')
+        data = []
         
     # 获取当前时间
     current_time = time.time()
@@ -368,7 +386,9 @@ try:
     # 创建端口信息映射
     port_speed_map = {}
     for user in data:
-        port_speed_map[user['port']] = user['speed_limit_per_user']
+        # 安全地获取speed_limit_per_user字段，如果不存在则使用'未设置'
+        if 'port' in user:
+            port_speed_map[user['port']] = user.get('speed_limit_per_user', '未设置')
     
     # 打印表头
     print('================================================================================')
@@ -382,35 +402,43 @@ try:
     else:
         # 遍历所有限速端口
         for port_str, start_time in limit_record.items():
-            port = int(port_str)
-            
-            # 格式化开始时间
-            time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
-            
-            # 计算剩余时间（24小时后自动恢复）
-            elapsed_seconds = current_time - start_time
-            remaining_seconds = 24 * 3600 - elapsed_seconds
-            
-            if remaining_seconds <= 0:
-                remaining = '即将自动恢复'
-            else:
-                hours = math.floor(remaining_seconds / 3600)
-                minutes = math.floor((remaining_seconds % 3600) / 60)
-                remaining = '{}小时{}分钟'.format(hours, minutes)
-            
-            # 获取当前速率
-            speed = port_speed_map.get(port, '未知')
-            
-            # 打印一行数据
-            print('| {:<10} | {:<20} | {:<15} | {:<20} |'.format(port, time_str, speed, remaining))
+            try:
+                port = int(port_str)
+                
+                # 格式化开始时间
+                time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(float(start_time)))
+                
+                # 计算剩余时间（24小时后自动恢复）
+                elapsed_seconds = current_time - float(start_time)
+                remaining_seconds = 24 * 3600 - elapsed_seconds
+                
+                if remaining_seconds <= 0:
+                    remaining = '即将自动恢复'
+                else:
+                    hours = int(remaining_seconds // 3600)
+                    minutes = int((remaining_seconds % 3600) // 60)
+                    remaining = '{}小时{}分钟'.format(hours, minutes)
+                
+                # 获取当前速率，确保键存在
+                speed = port_speed_map.get(port, '未知')
+                
+                # 打印一行数据
+                print('| {:<10} | {:<20} | {:<15} | {:<20} |'.format(port, time_str, speed, remaining))
+            except (ValueError, TypeError) as e:
+                print('| {:<10} | {:<20} | {:<15} | {:<20} |'.format(port_str, '数据格式错误', '未知', '未知'))
         
         print('================================================================================')
     
 except Exception as e:
     print('处理限速记录时出错: {}'.format(e))
+    import traceback
+    traceback.print_exc()
 "
     else
         echo "没有找到限速记录文件，目前没有被限速的端口"
+        # 创建空的限速记录文件
+        echo "{}" > /usr/local/SSR-Bash-Python/limit_record.json
+        echo "已创建空的限速记录文件"
     fi
 }
 
