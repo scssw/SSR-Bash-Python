@@ -66,7 +66,13 @@ while :; do
 done
 
 # 检查参数
-if [[ $# -eq 2 ]]; then
+if [[ $# -eq 3 ]]; then
+    # 如果提供了三个参数，直接使用它们（流量、期限、连接数）
+    ut=$1
+    limit=$2
+    uparam=$3
+    iflimittime="y"
+elif [[ $# -eq 2 ]]; then
     # 如果提供了两个参数，直接使用它们
     ut=$1
     limit=$2
@@ -188,9 +194,9 @@ else
 fi
 
 if [[ $iflimitspeed == y ]]; then
-  $PYTHON_CMD mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -t $ut -S $us
+  $PYTHON_CMD mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -t $ut -S $us -G $uparam
 else
-  $PYTHON_CMD mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -t $ut
+  $PYTHON_CMD mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -t $ut -G $uparam
 fi
 
 SSRPID=$(ps -ef | grep 'server.py m' | grep -v grep | awk '{print $2}')
@@ -238,6 +244,6 @@ echo "加密方法: $um1"
 echo "协议: $ux1"
 echo "混淆方式: $uo1"
 echo "流量: $ut GB"
-echo "允许连接数: 不限"
+echo "允许连接数: $uparam"
 echo "帐号有效期: $datelimit"
 echo "===================="
