@@ -318,6 +318,17 @@ except Exception as e:
         echo "没有找到限速记录文件，无需重置"
     fi
     
+    # 删除流量记录和限速记录文件
+    if [ -f "/usr/local/SSR-Bash-Python/limit_record.json" ]; then
+        rm -f /usr/local/SSR-Bash-Python/limit_record.json
+        echo "已删除限速记录文件"
+    fi
+    
+    if [ -f "/usr/local/SSR-Bash-Python/traffic_record.json" ]; then
+        rm -f /usr/local/SSR-Bash-Python/traffic_record.json
+        echo "已删除流量记录文件"
+    fi
+    
     # 清理进程
     pkill -f traffic_monitor.sh
     echo "已取消流控限制，被限速的端口已恢复默认速度"
