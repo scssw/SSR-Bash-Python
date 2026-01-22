@@ -156,6 +156,9 @@ if [[ -z ${datelimit} ]]; then
 fi
 
 if [[ ${OS} =~ ^Ubuntu$|^Debian$ ]];then
+  if [[ ! -f /etc/iptables.up.rules ]]; then
+    iptables-save > /etc/iptables.up.rules
+  fi
   iptables-restore < /etc/iptables.up.rules
   clear
   iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport $uport -j ACCEPT
@@ -165,6 +168,9 @@ fi
 
 if [[ ${OS} == CentOS ]];then
   if [[ $CentOS_RHEL_version == 7 ]];then
+    if [[ ! -f /etc/iptables.up.rules ]]; then
+      iptables-save > /etc/iptables.up.rules
+    fi
     iptables-restore < /etc/iptables.up.rules
     iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport $uport -j ACCEPT
     iptables -I INPUT -m state --state NEW -m udp -p udp --dport $uport -j ACCEPT
@@ -202,6 +208,9 @@ fi
 SSRPID=$(ps -ef | grep 'server.py m' | grep -v grep | awk '{print $2}')
 if [[ $SSRPID == "" ]]; then
   if [[ ${OS} =~ ^Ubuntu$|^Debian$ ]];then
+    if [[ ! -f /etc/iptables.up.rules ]]; then
+      iptables-save > /etc/iptables.up.rules
+    fi
     iptables-restore < /etc/iptables.up.rules
   fi
   bash /usr/local/shadowsocksr/logrun.sh
