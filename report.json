@@ -21,3 +21,30 @@ version.txt
 www
 ZBench-CN.sh
 ############Filelist of /usr/local/shadowsockr
+dev.sh
+easyadd.conf
+Explorer
+install.sh
+iptables2.sh
+LICENSE
+param.sh
+README.md
+report.json
+self-check.sh
+self.sh
+servercheck.sh
+server.sh
+show_flow.py
+speed.py
+ssr
+timelimit.db
+timelimit.sh
+traffic_control.sh
+traffic.sh
+update.txt
+user
+user.sh
+version.txt
+www
+ZBench-CN.sh
+############Filelist of /usr/local/shadowsockr

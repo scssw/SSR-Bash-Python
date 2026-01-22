@@ -19,14 +19,7 @@ while :; do echo
 done
 
 if [[ $tc == 1 ]];then
-	P_V=`python -V 2>&1 | awk '{print $2}'`
-	P_V1=`python -V 2>&1 | awk '{print $2}' | awk -F '.' '{print $1}'`
-	if [[ ${P_V1} == 3 ]];then
-		echo "你当前的python版本不支持此功能"
-		echo "当前版本：${P_V} ,请降级至2.x版本"
-	else
-		python /usr/local/SSR-Bash-Python/show_flow.py
-	fi
+	python3 /usr/local/SSR-Bash-Python/show_flow.py
 	echo ""
 	bash /usr/local/SSR-Bash-Python/traffic.sh
 fi
@@ -47,17 +40,16 @@ if [[ $tc == 2 ]];then
 	if [[ $lsid == 1 ]];then
 		read -p "输入用户名： " uid
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -c -u $uid
+		python3 mujson_mgr.py -c -u $uid
 		echo "已清空用户名为 ${uid} 的用户流量"
 	fi
 	
 	if [[ $lsid == 2 ]];then
 		read -p "输入端口号： " uid
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -c -p $uid
+		python3 mujson_mgr.py -c -p $uid
 		echo "已清空端口号为${uid} 的用户流量"
 	fi
 	echo ""
 	bash /usr/local/SSR-Bash-Python/traffic.sh
 fi
-

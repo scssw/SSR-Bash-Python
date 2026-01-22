@@ -274,13 +274,13 @@ if [[ $choice == 7 ]];then
 		bash /usr/local/SSR-Bash-Python/self.sh
 	else
 		speed_limit_kbps=$(($speed_limit * 128))
-		python /usr/local/SSR-Bash-Python/speed.py $speed_limit_kbps
+		python3 /usr/local/SSR-Bash-Python/speed.py $speed_limit_kbps
 		echo "已成功设置所有用户限速为 ${speed_limit} Mbps"
 		bash /usr/local/SSR-Bash-Python/self.sh
 	fi
 fi
 if [[ $choice == 8 ]];then
-	python /usr/local/SSR-Bash-Python/speed.py 0
+	python3 /usr/local/SSR-Bash-Python/speed.py 0
 	echo "已去除所有用户节点限速"
 	bash /usr/local/SSR-Bash-Python/self.sh
 fi
@@ -392,7 +392,7 @@ if [[ $choice == 12 ]];then
 	cat > /usr/local/SSR-Bash-Python/web_panel_start.sh << EOF
 #!/bin/bash
 cd /usr/local/shadowsocksr
-python server.py
+python3 server.py
 EOF
 	chmod +x /usr/local/SSR-Bash-Python/web_panel_start.sh
 	
@@ -406,7 +406,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python /usr/local/shadowsocksr/server.py
+ExecStart=/usr/bin/python3 /usr/local/shadowsocksr/server.py
 Restart=always
 RestartSec=5
 
@@ -419,17 +419,17 @@ EOF
 		echo "已成功设置Web面板开机自启动（systemd服务）"
 	elif [ -f "/etc/rc.local" ]; then
 		# 对于使用rc.local的系统
-		if ! grep -q "cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &" /etc/rc.local; then
-			sed -i '/exit 0/i\cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &' /etc/rc.local
+		if ! grep -q "cd /usr/local/shadowsocksr && nohup python3 server.py > /dev/null 2>&1 &" /etc/rc.local; then
+			sed -i '/exit 0/i\cd /usr/local/shadowsocksr && nohup python3 server.py > /dev/null 2>&1 &' /etc/rc.local
 		fi
 		# 立即启动web面板
-		cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &
+		cd /usr/local/shadowsocksr && nohup python3 server.py > /dev/null 2>&1 &
 		echo "已成功设置Web面板开机自启动（rc.local）"
 	else
 		# 如果以上方法都不适用，使用crontab
-		(crontab -l 2>/dev/null; echo "@reboot cd /usr/local/shadowsocksr && python server.py > /dev/null 2>&1 &") | crontab -
+		(crontab -l 2>/dev/null; echo "@reboot cd /usr/local/shadowsocksr && python3 server.py > /dev/null 2>&1 &") | crontab -
 		# 立即启动web面板
-		cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &
+		cd /usr/local/shadowsocksr && nohup python3 server.py > /dev/null 2>&1 &
 		echo "已成功设置Web面板开机自启动（crontab）"
 	fi
 	

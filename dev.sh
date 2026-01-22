@@ -101,7 +101,7 @@ if [[ $devc == 2 ]];then
 fi
 
 if [[ $devc == 3 ]];then
-	nohup tail -F /usr/local/shadowsocksr/ssserver.log | python autoban.py >log 2>log &
+	nohup tail -F /usr/local/shadowsocksr/ssserver.log | python3 autoban.py >log 2>log &
 fi
 
 if [[ $devc == 4 ]];then

@@ -180,15 +180,6 @@ if [[ $serverc == 6 ]];then
 fi
 
 if [[ $serverc == 7 ]];then
-	P_V=`python -V 2>&1 | awk '{print $2}'`
-	P_V1=`python -V 2>&1 | awk '{print $2}' | awk -F '.' '{print $1}'`
-	if [[ ${P_V1} == 3 ]];then
-		echo "你当前的python版本不支持此功能"
-		echo "当前版本：${P_V} ,请降级至2.x版本"
-		echo ""
-		bash /usr/local/SSR-Bash-Python/server.sh
-		exit 1
-	fi
 	while :; do echo
 		read -p "请输入自定义的WEB端口：" cgiport
 		if [[ "$cgiport" =~ ^(-?|\+?)[0-9]+(\.?[0-9]+)?$ ]];then
@@ -242,7 +233,7 @@ EOF
 	cat > /usr/local/SSR-Bash-Python/user_web_panel.sh << EOF
 #!/bin/bash
 cd /usr/local/SSR-Bash-Python/www
-screen -dmS webcgi python -m CGIHTTPServer $cgiport
+screen -dmS webcgi python3 -m http.server --cgi $cgiport
 EOF
 	chmod +x /usr/local/SSR-Bash-Python/user_web_panel.sh
 	
@@ -313,7 +304,7 @@ fi
 
 if [[ $serverc == 9 ]];then
 	if [[ ${OS} == Ubuntu || ${OS} == Debian ]];then
-    	cat >/etc/init.d/ssr-bash-python <<EOF
+    	cat >/etc/init.d/ssr-bash-python3 <<EOF
 #!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          SSR-Bash_python
@@ -329,19 +320,19 @@ if [[ $serverc == 9 ]];then
 iptables-restore < /etc/iptables.up.rules
 bash /usr/local/shadowsocksr/logrun.sh
 EOF
-    	chmod 755 /etc/init.d/ssr-bash-python
-    	chmod +x /etc/init.d/ssr-bash-python
+    	chmod 755 /etc/init.d/ssr-bash-python3
+    	chmod +x /etc/init.d/ssr-bash-python3
     	cd /etc/init.d
-    	update-rc.d ssr-bash-python defaults 95
+    	update-rc.d ssr-bash-python3 defaults 95
 	fi
 
 	if [[ ${OS} == CentOS ]];then
     	echo "
 iptables-restore < /etc/iptables.up.rules
 bash /usr/local/shadowsocksr/logrun.sh
-" > /etc/rc.d/init.d/ssr-bash-python
-    	chmod +x  /etc/rc.d/init.d/ssr-bash-python
-    	echo "/etc/rc.d/init.d/ssr-bash-python" >> /etc/rc.d/rc.local
+" > /etc/rc.d/init.d/ssr-bash-python3
+    	chmod +x  /etc/rc.d/init.d/ssr-bash-python3
+    	echo "/etc/rc.d/init.d/ssr-bash-python3" >> /etc/rc.d/rc.local
     	chmod +x /etc/rc.d/rc.local
 	fi
 	echo "开机启动设置完成！"
@@ -364,7 +355,7 @@ if [[ $serverc == 12 ]];then
 	cat > /usr/local/SSR-Bash-Python/web_panel_start.sh << EOF
 #!/bin/bash
 cd /usr/local/shadowsocksr
-python server.py
+python3 server.py
 EOF
 	chmod +x /usr/local/SSR-Bash-Python/web_panel_start.sh
 	
@@ -378,7 +369,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python /usr/local/shadowsocksr/server.py
+ExecStart=/usr/bin/python3 /usr/local/shadowsocksr/server.py
 Restart=always
 RestartSec=5
 
@@ -391,17 +382,17 @@ EOF
 		echo "已成功设置Web面板开机自启动（systemd服务）"
 	elif [ -f "/etc/rc.local" ]; then
 		# 对于使用rc.local的系统
-		if ! grep -q "cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &" /etc/rc.local; then
-			sed -i '/exit 0/i\cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &' /etc/rc.local
+		if ! grep -q "cd /usr/local/shadowsocksr && nohup python3 server.py > /dev/null 2>&1 &" /etc/rc.local; then
+			sed -i '/exit 0/i\cd /usr/local/shadowsocksr && nohup python3 server.py > /dev/null 2>&1 &' /etc/rc.local
 		fi
 		# 立即启动web面板
-		cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &
+		cd /usr/local/shadowsocksr && nohup python3 server.py > /dev/null 2>&1 &
 		echo "已成功设置Web面板开机自启动（rc.local）"
 	else
 		# 如果以上方法都不适用，使用crontab
-		(crontab -l 2>/dev/null; echo "@reboot cd /usr/local/shadowsocksr && python server.py > /dev/null 2>&1 &") | crontab -
+		(crontab -l 2>/dev/null; echo "@reboot cd /usr/local/shadowsocksr && python3 server.py > /dev/null 2>&1 &") | crontab -
 		# 立即启动web面板
-		cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &
+		cd /usr/local/shadowsocksr && nohup python3 server.py > /dev/null 2>&1 &
 		echo "已成功设置Web面板开机自启动（crontab）"
 	fi
 	

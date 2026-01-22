@@ -73,18 +73,18 @@ checkmsg(){
 if [[ $1 == "" ]];then
 	readmsg
 	if [[ $lsid == 1 ]];then
-		ssrmsg=`python mujson_mgr.py -l -u $uid | tail -n 1 | sed 's/^[ \t]*//g'`
-		username=`python mujson_mgr.py -l -u $uid | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
+		ssrmsg=`python3 mujson_mgr.py -l -u $uid | tail -n 1 | sed 's/^[ \t]*//g'`
+		username=`python3 mujson_mgr.py -l -u $uid | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
 	elif [[ $lsid == 2 ]];then
-		ssrmsg=`python mujson_mgr.py -l -p $uid | tail -n 1 | sed 's/^[ \t]*//g'`
-		username=`python mujson_mgr.py -l -p $uid | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
+		ssrmsg=`python3 mujson_mgr.py -l -p $uid | tail -n 1 | sed 's/^[ \t]*//g'`
+		username=`python3 mujson_mgr.py -l -p $uid | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
 	fi
 elif [[ $1 == "u" ]];then
-	ssrmsg=`python mujson_mgr.py -l -u $2 | tail -n 1 | sed 's/^[ \t]*//g'`
-	username=`python mujson_mgr.py -l -u $2 | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
+	ssrmsg=`python3 mujson_mgr.py -l -u $2 | tail -n 1 | sed 's/^[ \t]*//g'`
+	username=`python3 mujson_mgr.py -l -u $2 | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
 elif [[ $1 == "p" ]];then
-	ssrmsg=`python mujson_mgr.py -l -p $2 | tail -n 1 | sed 's/^[ \t]*//g'`
-	username=`python mujson_mgr.py -l -p $2 | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
+	ssrmsg=`python3 mujson_mgr.py -l -p $2 | tail -n 1 | sed 's/^[ \t]*//g'`
+	username=`python3 mujson_mgr.py -l -p $2 | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
 fi
 }
 checkqr
@@ -123,7 +123,7 @@ if [[ -e "$username.png" ]];then
     cp "${HOME}/SSRQR/${username}.png" /tmp/QR/${username}
     cd /tmp/QR/${username}
     myip=`curl -m 10 -s http://members.3322.org/dyndns/getip`
-    screen -dmS ${cname} python -m SimpleHTTPServer ${cport}
+    screen -dmS ${cname} python3 -m http.server ${cport}
     cleanwebqr ${cname} ${cport} ${username} &
     echo "请及时访问 http://${myip}:${cport}/${username}.png 来获取二维码,链接将在120秒后失效"
 else

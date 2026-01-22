@@ -182,8 +182,8 @@ echo "用户添加成功！用户信息如下："
 cd /usr/local/shadowsocksr
 
 # 检查 Python 版本并使用合适的命令
-if command -v python &>/dev/null; then
-    PYTHON_CMD="python"
+if command -v python3 &>/dev/null; then
+    PYTHON_CMD="python3"
 elif command -v python2 &>/dev/null; then
     PYTHON_CMD="python2"
 elif command -v python3 &>/dev/null; then

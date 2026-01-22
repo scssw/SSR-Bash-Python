@@ -74,8 +74,8 @@ mades(){
 		fi
 		echo "用户添加成功！用户信息如下："
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -G $uparam
-		ssrmsg=`python mujson_mgr.py -l -u $uname | tail -n 1 | sed 's/^[ \t]*//g'`
+		python3 mujson_mgr.py -a -u $uname -p $uport -k $upass -m $um1 -O $ux1 -o $uo1 -G $uparam
+		ssrmsg=`python3 mujson_mgr.py -l -u $uname | tail -n 1 | sed 's/^[ \t]*//g'`
 		echo "#User add OK!" >> ${log_file}
 		echo "#The passwd = $upass" >> ${log_file}
 		echo "#The URL = $ssrmsg" >> ${log_file}
@@ -113,7 +113,7 @@ dothetest(){
 	local_port=$(rand)
 	passwd=`cat ${log_file} | head -n 2 | tail -n 1 | awk -F" = " '{ print $2 }'`
 	ip=`cat ${log_file} | head -n 4 | tail -n 1 | awk -F" = " '{ print $2 }'`
-	nohup python "${ssr_local}/local.py" -b "127.0.0.1" -l "${local_port}" -s "${ip}" -p "${uport}" -k "${passwd}" -m "${um1}" -O "${ux1}" -o "${uo1}" > /dev/null 2>&1 &
+	nohup python3 "${ssr_local}/local.py" -b "127.0.0.1" -l "${local_port}" -s "${ip}" -p "${uport}" -k "${passwd}" -m "${um1}" -O "${ux1}" -o "${uo1}" > /dev/null 2>&1 &
 	sleep 2s
 	PID=$(ps -ef |grep -v grep | grep "local.py" | grep "${local_port}" | awk '{print $2}')
 	if [[ -z ${PID} ]]; then
@@ -278,7 +278,7 @@ fi
 if [[ $1 == reconf ]];then
 	rm -f ${log_file}
 	cd /usr/local/shadowsocksr
-	python mujson_mgr.py -d -u $uname
+	python3 mujson_mgr.py -d -u $uname
 	cd ${pwd}
 	main
 fi

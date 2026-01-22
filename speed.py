@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import json
 import sys
@@ -23,7 +23,7 @@ def set_speed_limit(speed_limit_kbps):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("使用方法: python speed.py <速度限制(KBps)>")
+        print("使用方法: python3 speed.py <速度限制(KBps)>")
         sys.exit(1)
         
     try:

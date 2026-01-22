@@ -1,13 +1,11 @@
-# -*- coding:utf-8 -*-  
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import json
 
-f = file("/usr/local/shadowsocksr/mudb.json");
+with open("/usr/local/shadowsocksr/mudb.json", "r", encoding="utf-8") as f:
+    data = json.load(f)
 
-json = json.load(f);
+print("用户名\t端口\t加密方式\t密码")
 
-print "用户名\t端口\t加密方式\t密码"
-
-for x in json:
-  print "%s\t%s\t%s\t%s" %(x[u"user"],x[u"port"],x[u"method"],x[u"passwd"])
-f.close();
-
+for x in data:
+    print("%s\t%s\t%s\t%s" % (x["user"], x["port"], x["method"], x["passwd"]))

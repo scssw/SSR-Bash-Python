@@ -19,7 +19,7 @@ checkonly(){
 				limitdate=$(echo ${line} | awk -F':' '{ print $2 }')
 				if [[ ${nowdate} -ge ${limitdate} ]];then
 					cd /usr/local/shadowsocksr/
-					python mujson_mgr.py -d -p ${port} 1>/dev/null 2>&1
+					python3 mujson_mgr.py -d -p ${port} 1>/dev/null 2>&1
 					sed -i '/'"${line}"'/d' ${userlimit}
 				fi
 			fi
@@ -81,7 +81,7 @@ EasyAdd(){
 	if [[ ${lsid} == 1 ]];then
 		read -p "输入用户名： " uid
 		cd /usr/local/shadowsocksr
-		checkuid=$(python mujson_mgr.py -l -u ${uid})
+		checkuid=$(python3 mujson_mgr.py -l -u ${uid})
 		if [[ -z ${checkuid} ]];then
 			echo "用户名不存在！"
 			EasyAdd
@@ -90,7 +90,7 @@ EasyAdd(){
 			if [[ -z ${limit} ]];then
 				limit="1m"
 			fi
-			port=$(python mujson_mgr.py -l -u ${uid} | grep "port :" | awk -F" : " '{ print $2 }')
+			port=$(python3 mujson_mgr.py -l -u ${uid} | grep "port :" | awk -F" : " '{ print $2 }')
 			bash /usr/local/SSR-Bash-Python/timelimit.sh a ${port} ${limit} || EasyAdd
 			datelimit=$(cat ${userlimit} | grep "${port}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9}\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
 			if [[ -z ${datelimit} ]];then
@@ -102,7 +102,7 @@ EasyAdd(){
 	if [[ ${lsid} == 2 ]];then
 		read -p "输入端口号： " port
 		cd /usr/local/shadowsocksr
-		checkuid=$(python mujson_mgr.py -l -p ${port})
+		checkuid=$(python3 mujson_mgr.py -l -p ${port})
 		if [[ -z ${checkuid} ]];then
 			echo "用户不存在!"
 			EasyAdd
@@ -136,12 +136,12 @@ EasyEdit(){
 	if [[ ${lsid} == 1 ]];then
 		read -p "输入用户名： " uid
 		cd /usr/local/shadowsocksr
-		checkuid=$(python mujson_mgr.py -l -u ${uid})
+		checkuid=$(python3 mujson_mgr.py -l -u ${uid})
 		if [[ -z ${checkuid} ]];then
 			echo "用户名不存在！"
 			EasyEdit
 		else
-			port=$(python mujson_mgr.py -l -u ${uid} | grep "port :" | awk -F" : " '{ print $2 }')
+			port=$(python3 mujson_mgr.py -l -u ${uid} | grep "port :" | awk -F" : " '{ print $2 }')
 			datelimit=$(cat ${userlimit} | grep "${port}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9}\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
 			if [[ -z ${datelimit} ]];then
 				datelimit="永久"
@@ -156,7 +156,7 @@ EasyEdit(){
 	if [[ ${lsid} == 2 ]];then
 		read -p "输入端口号： " port
 		cd /usr/local/shadowsocksr
-		checkuid=$(python mujson_mgr.py -l -p ${port} 2>/dev/null)
+		checkuid=$(python3 mujson_mgr.py -l -p ${port} 2>/dev/null)
 		if [[ -z ${checkuid} ]];then
 			echo "用户不存在!"
 			EasyEdit

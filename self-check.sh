@@ -10,7 +10,7 @@ rm -f report.json
 echo "############Filelist of /usr/local" >> report.json
 cd /usr/local
 ls >> report.json
-#List /usr/local/ssr-bash-python
+#List /usr/local/ssr-bash-python3
 echo "############Filelist of /usr/local/SSR-Bash-Python" >> report.json
 cd /usr/local/SSR-Bash-Python
 ls >> report.json

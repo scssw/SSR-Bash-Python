@@ -92,14 +92,14 @@ fi
 chmod a+rx /tmp/besttrace
 
 # Check Python
-if  [ ! -e '/usr/bin/python' ]; then
+if  [ ! -e '/usr/bin/python3' ]; then
     echo "Installing Python......"
     if [ "${release}" == "centos" ]; then
             yum update > /dev/null 2>&1
-            yum -y install python
+            yum -y install python3
         else
             apt-get update > /dev/null 2>&1
-            apt-get -y install python
+            apt-get -y install python3
     fi
 fi
 
@@ -178,7 +178,7 @@ speed() {
 
 speed_test_cn(){
     if [[ $1 == '' ]]; then
-        temp=$(python /tmp/speedtest.py --share 2>&1)
+        temp=$(python3 /tmp/speedtest.py --share 2>&1)
         is_down=$(echo "$temp" | grep 'Download') 
         if [[ ${is_down} ]]; then
             local REDownload=$(echo "$temp" | awk -F ':' '/Download/{print $2}')
@@ -191,7 +191,7 @@ speed_test_cn(){
             local cerror="ERROR"
         fi
     else
-        temp=$(python /tmp/speedtest.py --server $1 --share 2>&1)
+        temp=$(python3 /tmp/speedtest.py --server $1 --share 2>&1)
         is_down=$(echo "$temp" | grep 'Download') 
         if [[ ${is_down} ]]; then
             local REDownload=$(echo "$temp" | awk -F ':' '/Download/{print $2}')
@@ -326,7 +326,7 @@ printf "%-30s%-20s%-24s%-12s\n" "节点名称" "IP地址" "下载速度" "延迟
 speed && next
 printf "%-30s%-22s%-24s%-12s\n" "节点名称" "上传速度" "下载速度" "延迟"
 speed_cn && next
-python /tmp/ZPing-CN.py
+python3 /tmp/ZPing-CN.py
 next
 
 NetCFspeec=$( sed -n "2p" /tmp/speed.txt )
@@ -378,7 +378,7 @@ NetUPCM=$( sed -n "25p" /tmp/speed_cn.txt )
 NetDWCM=$( sed -n "26p" /tmp/speed_cn.txt )
 NetPiCM=$( sed -n "27p" /tmp/speed_cn.txt )
 wget -N --no-check-certificate https://raw.githubusercontent.com/FunctionClub/ZBench/master/Generate.py >> /dev/null 2>&1
-python Generate.py && rm -rf Generate.py && cp /root/report.html /tmp/report/index.html
+python3 Generate.py && rm -rf Generate.py && cp /root/report.html /tmp/report/index.html
 TSM=$( cat /tmp/shm.txt_table )
 TST=$( cat /tmp/sht.txt_table )
 TSU=$( cat /tmp/shu.txt_table )
@@ -405,6 +405,6 @@ if [[ $ifreport == 'y' ]];then
     myip=`curl -m 10 -s http://members.3322.org/dyndns/getip`
     echo "访问 http://${myip}:8001/index.html 查看您的测试报告，按 Ctrl + C 退出" 
 	cd /tmp/report
-    python -m SimpleHTTPServer 8001
+    python3 -m http.server 8001
     iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport 8001 -j ACCEPT
 fi

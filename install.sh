@@ -48,10 +48,10 @@ StopInstall(){
     rm -rf /usr/local/SSR-Bash-Python
     rm -rf /usr/local/shadowsocksr
     rm -rf ${PWD}/libsodium*
-    rm -rf /etc/init.d/ssr-bash-python
+    rm -rf /etc/init.d/ssr-bash-python3
     rm -rf /usr/local/AR-B-P-B
     if [[ ${OS} == CentOS  ]];then
-        sed -n -i 's#/etc/init.d/ssr-bash-python#d' /etc/rc.d/rc.local
+        sed -n -i 's#/etc/init.d/ssr-bash-python3#d' /etc/rc.d/rc.local
     fi
     if [[ ${OS} == CentOS && ${CentOS_RHEL_version} == 7  ]];then
         systemctl stop iptables.service
@@ -84,8 +84,8 @@ trap 'StopInstall 2>/dev/null && exit 0' 2
 sleep 2s
 if [[ ${OS} == Ubuntu ]];then
 	apt-get update
-	apt-get install python -y
-	apt-get install python-pip -y
+	apt-get install python3 -y
+	apt-get install python3-pip -y
 	apt-get install git -y
 	apt-get install language-pack-zh-hans -y
 	apt-get -y install vnstat bc
@@ -94,8 +94,8 @@ if [[ ${OS} == Ubuntu ]];then
     apt-get install cron -y
 fi
 if [[ ${OS} == CentOS ]];then
-	yum install python screen curl -y
-	yum install python-setuptools -y && easy_install pip -y
+	yum install python3 screen curl -y
+	yum install python3-setuptools -y && easy_install pip -y
 	yum install git -y
 	yum install bc -y
 	yum install vnstat -y
@@ -105,8 +105,8 @@ if [[ ${OS} == CentOS ]];then
 fi
 if [[ ${OS} == Debian ]];then
 	apt-get update
-	apt-get install python screen curl -y
-	apt-get install python-pip -y
+	apt-get install python3 screen curl -y
+	apt-get install python3-pip -y
 	apt-get install git -y
 	apt-get -y install net-tools
 	apt-get -y install bc vnstat
@@ -243,7 +243,7 @@ if [[ ${bashinstall} == "no" ]]; then
 
 #Start when boot
 if [[ ${OS} == Ubuntu || ${OS} == Debian ]];then
-    cat >/etc/init.d/ssr-bash-python <<EOF
+    cat >/etc/init.d/ssr-bash-python3 <<EOF
 #!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          SSR-Bash_python
@@ -259,19 +259,19 @@ if [[ ${OS} == Ubuntu || ${OS} == Debian ]];then
 iptables-restore < /etc/iptables.up.rules
 bash /usr/local/shadowsocksr/logrun.sh
 EOF
-    chmod 755 /etc/init.d/ssr-bash-python
-    chmod +x /etc/init.d/ssr-bash-python
+    chmod 755 /etc/init.d/ssr-bash-python3
+    chmod +x /etc/init.d/ssr-bash-python3
     cd /etc/init.d
-    update-rc.d ssr-bash-python defaults 95
+    update-rc.d ssr-bash-python3 defaults 95
 fi
 
 if [[ ${OS} == CentOS ]];then
     echo "
 iptables-restore < /etc/iptables.up.rules
 bash /usr/local/shadowsocksr/logrun.sh
-" > /etc/rc.d/init.d/ssr-bash-python
-    chmod +x  /etc/rc.d/init.d/ssr-bash-python
-    echo "/etc/rc.d/init.d/ssr-bash-python" >> /etc/rc.d/rc.local
+" > /etc/rc.d/init.d/ssr-bash-python3
+    chmod +x  /etc/rc.d/init.d/ssr-bash-python3
+    echo "/etc/rc.d/init.d/ssr-bash-python3" >> /etc/rc.d/rc.local
     chmod +x /etc/rc.d/rc.local
 fi
 

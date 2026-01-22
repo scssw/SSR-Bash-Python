@@ -31,13 +31,13 @@ echo "${CFAILURE}Does not support this OS, Please contact the author! ${CEND}"
 kill -9 $$
 fi
 uqr(){
-	username=`python mujson_mgr.py -l -u $uid | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
+	username=`python3 mujson_mgr.py -l -u $uid | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
 	if [[ -e ~/SSRQR/$username.png ]];then
 		bash /usr/local/SSR-Bash-Python/user/qrcode.sh u $uid
 	fi
 }
 pqr(){
-	username=`python mujson_mgr.py -l -p $uid | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
+	username=`python3 mujson_mgr.py -l -p $uid | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
 	if [[ -e ~/SSRQR/$username.png ]];then
 		bash /usr/local/SSR-Bash-Python/user/qrcode.sh p $uid
 	fi
@@ -46,20 +46,20 @@ pqr(){
 lsid=2
 read -p "输入端口号： " uid
 cd /usr/local/shadowsocksr
-checkuid=$(python mujson_mgr.py -l -p $uid 2>/dev/null)
+checkuid=$(python3 mujson_mgr.py -l -p $uid 2>/dev/null)
 if [[ -z ${checkuid} ]];then
 	echo "用户不存在！"
 	bash /usr/local/SSR-Bash-Python/user/edit.sh || exit 0
 else
-	python mujson_mgr.py -l -p $uid
+	python3 mujson_mgr.py -l -p $uid
 
 	# 生成带备注的SSR链接
 	myipname=`cat /usr/local/shadowsocksr/myip.txt`
-	username=`python mujson_mgr.py -l -p $uid | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
-	upass=`python mujson_mgr.py -l -p $uid | grep "passwd :" | awk -F" : " '{ print $2 }'`
-	um1=`python mujson_mgr.py -l -p $uid | grep "method :" | awk -F" : " '{ print $2 }'`
-	ux1=`python mujson_mgr.py -l -p $uid | grep "protocol :" | awk -F" : " '{ print $2 }'`
-	uo1=`python mujson_mgr.py -l -p $uid | grep "obfs :" | awk -F" : " '{ print $2 }'`
+	username=`python3 mujson_mgr.py -l -p $uid | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
+	upass=`python3 mujson_mgr.py -l -p $uid | grep "passwd :" | awk -F" : " '{ print $2 }'`
+	um1=`python3 mujson_mgr.py -l -p $uid | grep "method :" | awk -F" : " '{ print $2 }'`
+	ux1=`python3 mujson_mgr.py -l -p $uid | grep "protocol :" | awk -F" : " '{ print $2 }'`
+	uo1=`python3 mujson_mgr.py -l -p $uid | grep "obfs :" | awk -F" : " '{ print $2 }'`
 
 	# 从域名中提取前缀并转换为大写
 	prefix=$(echo $myipname | awk -F'.' '{print $1}' | tr '[:lower:]' '[:upper:]')
@@ -116,13 +116,13 @@ if [[ $ec == 1 ]];then
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -u $uid -k $upass
+		python3 mujson_mgr.py -e -u $uid -k $upass
 		echo "用户名为 $uid 的用户密码已设置成 $upass"
 		uqr
 	fi
 	if [[ $lsid == 2 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -p $uid -k $upass
+		python3 mujson_mgr.py -e -p $uid -k $upass
 		echo "端口号为 $uid 的用户密码已设置成 $upass"
 		pqr
 	fi
@@ -177,13 +177,13 @@ if [[ $ec == 2 ]];then
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -u $uid -m $um1
+		python3 mujson_mgr.py -e -u $uid -m $um1
 		echo "用户名为 $uid 的加密方式已切换为 $um1"
 		uqr
 	fi
 	if [[ $lsid == 2 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -p $uid -m $um1
+		python3 mujson_mgr.py -e -p $uid -m $um1
 		echo "端口号为 $uid 的加密方式已切换为 $um1"
 		pqr
 	fi
@@ -261,13 +261,13 @@ if [[ $ec == 3 ]];then
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -u $uid -O $ux1
+		python3 mujson_mgr.py -e -u $uid -O $ux1
 		echo "用户名为 $uid 的协议方式已更改为 $ux1"
 		uqr
 	fi
 	if [[ $lsid == 2 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -p $uid -O $ux1
+		python3 mujson_mgr.py -e -p $uid -O $ux1
 		echo "端口号为 $uid 的协议方式已更改为 $ux1"
 		pqr
 	fi
@@ -318,12 +318,12 @@ if [[ $ec == 4 ]];then
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -u $uid -o $uo1
+		python3 mujson_mgr.py -e -u $uid -o $uo1
 		echo "用户名为 $uid 的混淆方式已更改为 $uo1"
 	fi
 	if [[ $lsid == 2 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -p $uid -o $uo1
+		python3 mujson_mgr.py -e -p $uid -o $uo1
 		echo "端口号为 $uid 的混淆方式已更改为 $uo1"
 	fi
 fi
@@ -332,12 +332,12 @@ if [[ $ec == 5 ]];then
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -u $uid -G $ux2
+		python3 mujson_mgr.py -e -u $uid -G $ux2
 		echo "用户名为 $uid 的协议参数已更改为 $ux2"
 	fi
 	if [[ $lsid == 2 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -p $uid -G $ux2
+		python3 mujson_mgr.py -e -p $uid -G $ux2
 		echo "端口号为 $uid 的协议参数已更改为 $ux2"
 	fi
 fi
@@ -346,12 +346,12 @@ if [[ $ec == 6 ]];then
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -u $uid -g $uo2
+		python3 mujson_mgr.py -e -u $uid -g $uo2
 		echo "用户名为 $uid 的混淆参数已更改为 $uo2"
 	fi
 	if [[ $lsid == 2 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -p $uid -g $uo2
+		python3 mujson_mgr.py -e -p $uid -g $uo2
 		echo "端口号为 $uid 的混淆参数已更改为 $uo2"
 	fi
 fi
@@ -367,13 +367,13 @@ if [[ $ec == 7 ]];then
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -u $uid -t $ut
+		python3 mujson_mgr.py -e -u $uid -t $ut
 		echo "用户名为 $uid 的流量限制已改为 $ut"
 		uqr
 	fi
 	if [[ $lsid == 2 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -p $uid -t $ut
+		python3 mujson_mgr.py -e -p $uid -t $ut
 		echo "端口号为 $uid 的流量限制已改为 $ut"
 		pqr
 	fi
@@ -383,12 +383,12 @@ if [[ $ec == 8 ]];then
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
-		#python mujson_mgr.py -e -u $uid -f $ub
+		#python3 mujson_mgr.py -e -u $uid -f $ub
 		echo "此功能目前无法使用"
 	fi
 	if [[ $lsid == 2 ]];then
 		cd /usr/local/shadowsocksr
-		#python mujson_mgr.py -e -p $uid -f $ub
+		#python3 mujson_mgr.py -e -p $uid -f $ub
 		echo "此功能目前无法使用"
 	fi
 fi
@@ -405,13 +405,13 @@ if [[ $ec == 9 ]];then
 	cd /usr/local/shadowsocksr
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -u $uid -S $us
+		python3 mujson_mgr.py -e -u $uid -S $us
 		echo "用户名为 $uid 的用户端口限速已修改为 $us KB/s"
 		uqr
 	fi
 	if [[ $lsid == 2 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -p $uid -S $us
+		python3 mujson_mgr.py -e -p $uid -S $us
 		echo "端口号为 $uid 的用户端口限速已修改为 $us KB/s"
 		pqr
 	fi
@@ -429,13 +429,13 @@ if [[ $ec == 10 ]];then
 	done
 	if [[ $lsid == 1 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -u $uid -G $uparam
+		python3 mujson_mgr.py -e -u $uid -G $uparam
 		echo "用户名为 $uid 的允许的连接数已修改为 $uparam "
 		uqr
 	fi
 	if [[ $lsid == 2 ]];then
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -e -p $uid -G $uparam
+		python3 mujson_mgr.py -e -p $uid -G $uparam
 		echo "端口号为 $uid 的允许的连接数已修改为 $uparam "
 		pqr
 	fi
@@ -444,7 +444,7 @@ fi
 if [[ $ec == 11 ]];then
 	userlimit="/usr/local/SSR-Bash-Python/timelimit.db"
 	if [[ ${lsid} == 1 ]];then
-		port=$(python mujson_mgr.py -l -u ${uid} | grep "port :" | awk -F" : " '{ print $2 }')
+		port=$(python3 mujson_mgr.py -l -u ${uid} | grep "port :" | awk -F" : " '{ print $2 }')
 		datelimit=$(cat ${userlimit} | grep "${port}:" | awk -F":" '{ print $2 }' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\1年\2月\3日 \4:/')
 		if [[ -z ${datelimit} ]];then
 			datelimit="永久"
@@ -533,15 +533,15 @@ if [[ $ec == 11 ]];then
 	
 	# 显示用户完整信息
 	cd /usr/local/shadowsocksr
-	python mujson_mgr.py -l -p ${port}
+	python3 mujson_mgr.py -l -p ${port}
 	
 	# 生成带备注的SSR链接
 	myipname=`cat /usr/local/shadowsocksr/myip.txt`
-	username=`python mujson_mgr.py -l -p ${port} | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
-	upass=`python mujson_mgr.py -l -p ${port} | grep "passwd :" | awk -F" : " '{ print $2 }'`
-	um1=`python mujson_mgr.py -l -p ${port} | grep "method :" | awk -F" : " '{ print $2 }'`
-	ux1=`python mujson_mgr.py -l -p ${port} | grep "protocol :" | awk -F" : " '{ print $2 }'`
-	uo1=`python mujson_mgr.py -l -p ${port} | grep "obfs :" | awk -F" : " '{ print $2 }'`
+	username=`python3 mujson_mgr.py -l -p ${port} | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
+	upass=`python3 mujson_mgr.py -l -p ${port} | grep "passwd :" | awk -F" : " '{ print $2 }'`
+	um1=`python3 mujson_mgr.py -l -p ${port} | grep "method :" | awk -F" : " '{ print $2 }'`
+	ux1=`python3 mujson_mgr.py -l -p ${port} | grep "protocol :" | awk -F" : " '{ print $2 }'`
+	uo1=`python3 mujson_mgr.py -l -p ${port} | grep "obfs :" | awk -F" : " '{ print $2 }'`
 
 	# 从域名中提取前缀并转换为大写
 	prefix=$(echo $myipname | awk -F'.' '{print $1}' | tr '[:lower:]' '[:upper:]')
@@ -577,7 +577,7 @@ fi
 
 if [[ $ec == 12 ]];then
 	if [[ ${lsid} == 1 ]];then
-		port=$(python mujson_mgr.py -l -u ${uid} | grep "port :" | awk -F" : " '{ print $2 }')
+		port=$(python3 mujson_mgr.py -l -u ${uid} | grep "port :" | awk -F" : " '{ print $2 }')
 	else
 		port=${uid}
 	fi
