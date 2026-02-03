@@ -81,12 +81,31 @@ PY
 
     echo "$count"
 }
+print_gradient_line() {
+    local text="$1"
+    if command -v python3 >/dev/null 2>&1; then
+        python3 - <<'PY' "$text"
+import sys
+text = sys.argv[1]
+colors = [198, 202, 208, 214, 220, 226, 190, 82]
+out = []
+for i, ch in enumerate(text):
+    color = colors[i % len(colors)]
+    out.append(f"\033[38;5;{color}m{ch}")
+out.append("\033[0m")
+print("".join(out))
+PY
+    else
+        echo -e "\e[38;5;51m${text}\e[0m"
+    fi
+}
+
 
 echo
 
 echo -e "\e[38;5;198m霉\e[38;5;202m运\e[38;5;208m退\e[38;5;214m散\e[0m，\e[38;5;220m原\e[38;5;226m地\e[38;5;190m起\e[38;5;82m飞\e[0m"
 port_count=$(get_user_port_count)
-echo -e "\e[38;5;51m用户端口数: \e[38;5;82m${port_count}\e[0m"
+print_gradient_line "用户数: ${port_count}"
 
 # 预定义彩虹色数组
 # 调整后的渐变色数组（红→黄→绿→蓝）
