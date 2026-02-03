@@ -47,9 +47,46 @@ else
 fi
 }
 
+get_user_port_count() {
+    local mudb="/usr/local/shadowsocksr/mudb.json"
+    local tldb="/usr/local/SSR-Bash-Python/timelimit.db"
+    local count=""
+
+    if [[ -s "$mudb" ]] && command -v python3 >/dev/null 2>&1; then
+        count=$(python3 - <<'PY'
+import json
+path = "/usr/local/shadowsocksr/mudb.json"
+try:
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    if isinstance(data, list):
+        print(len(data))
+    elif isinstance(data, dict):
+        print(len(data))
+    else:
+        print(0)
+except Exception:
+    print("")
+PY
+)
+    fi
+
+    if [[ -z "$count" && -s "$tldb" ]]; then
+        count=$(awk -F':' 'NF>=2 && $1 ~ /^[0-9]+$/ {c++} END {print c+0}' "$tldb")
+    fi
+
+    if [[ -z "$count" ]]; then
+        count=0
+    fi
+
+    echo "$count"
+}
+
 echo
 
 echo -e "\e[38;5;198m霉\e[38;5;202m运\e[38;5;208m退\e[38;5;214m散\e[0m，\e[38;5;220m原\e[38;5;226m地\e[38;5;190m起\e[38;5;82m飞\e[0m"
+port_count=$(get_user_port_count)
+echo -e "\e[38;5;51m用户端口数: \e[38;5;82m${port_count}\e[0m"
 
 # 预定义彩虹色数组
 # 调整后的渐变色数组（红→黄→绿→蓝）
