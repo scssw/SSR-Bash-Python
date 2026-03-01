@@ -177,7 +177,7 @@ echo "输入数字选择功能："
 echo "1.流控管理"
 echo "2.设置连接数"
 echo "3.端口段设置"
-echo "4.卸载程序（会丢失数据）"
+echo "4.卸载程序（卸载前自动备份）"
 echo "5.备份配置"
 echo "6.还原配置"
 echo "7.设置所有用户限速"
@@ -246,7 +246,17 @@ if [[ $choice == 4 ]];then
 	echo "你在做什么？你真的这么狠心吗？"
 	sumdc
 	if [[ "$sv" == "$solve" ]];then
-		wget -q -N --no-check-certificate https://raw.githubusercontent.com/scssw/SSR-Bash-Python/master/install.sh  && bash install.sh uninstall
+		if [[ -f /usr/local/SSR-Bash-Python/user/backup.sh ]];then
+			echo "卸载前开始备份配置..."
+			if command -v sudo >/dev/null 2>&1;then
+				sudo /bin/bash /usr/local/SSR-Bash-Python/user/backup.sh
+			else
+				/bin/bash /usr/local/SSR-Bash-Python/user/backup.sh
+			fi
+		else
+			echo "未找到备份脚本，跳过备份。"
+		fi
+		bash /usr/local/SSR-Bash-Python/install.sh uninstall
 		exit 0
 	else
 		echo "计算错误，正确结果为$solve"
@@ -274,13 +284,13 @@ if [[ $choice == 7 ]];then
 		bash /usr/local/SSR-Bash-Python/self.sh
 	else
 		speed_limit_kbps=$(($speed_limit * 128))
-		python3 /usr/local/SSR-Bash-Python/speed.py $speed_limit_kbps
+		python /usr/local/SSR-Bash-Python/speed.py $speed_limit_kbps
 		echo "已成功设置所有用户限速为 ${speed_limit} Mbps"
 		bash /usr/local/SSR-Bash-Python/self.sh
 	fi
 fi
 if [[ $choice == 8 ]];then
-	python3 /usr/local/SSR-Bash-Python/speed.py 0
+	python /usr/local/SSR-Bash-Python/speed.py 0
 	echo "已去除所有用户节点限速"
 	bash /usr/local/SSR-Bash-Python/self.sh
 fi
@@ -392,7 +402,7 @@ if [[ $choice == 12 ]];then
 	cat > /usr/local/SSR-Bash-Python/web_panel_start.sh << EOF
 #!/bin/bash
 cd /usr/local/shadowsocksr
-python3 server.py
+python server.py
 EOF
 	chmod +x /usr/local/SSR-Bash-Python/web_panel_start.sh
 	
@@ -406,7 +416,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /usr/local/shadowsocksr/server.py
+ExecStart=/usr/bin/python /usr/local/shadowsocksr/server.py
 Restart=always
 RestartSec=5
 
@@ -419,17 +429,17 @@ EOF
 		echo "已成功设置Web面板开机自启动（systemd服务）"
 	elif [ -f "/etc/rc.local" ]; then
 		# 对于使用rc.local的系统
-		if ! grep -q "cd /usr/local/shadowsocksr && nohup python3 server.py > /dev/null 2>&1 &" /etc/rc.local; then
-			sed -i '/exit 0/i\cd /usr/local/shadowsocksr && nohup python3 server.py > /dev/null 2>&1 &' /etc/rc.local
+		if ! grep -q "cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &" /etc/rc.local; then
+			sed -i '/exit 0/i\cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &' /etc/rc.local
 		fi
 		# 立即启动web面板
-		cd /usr/local/shadowsocksr && nohup python3 server.py > /dev/null 2>&1 &
+		cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &
 		echo "已成功设置Web面板开机自启动（rc.local）"
 	else
 		# 如果以上方法都不适用，使用crontab
-		(crontab -l 2>/dev/null; echo "@reboot cd /usr/local/shadowsocksr && python3 server.py > /dev/null 2>&1 &") | crontab -
+		(crontab -l 2>/dev/null; echo "@reboot cd /usr/local/shadowsocksr && python server.py > /dev/null 2>&1 &") | crontab -
 		# 立即启动web面板
-		cd /usr/local/shadowsocksr && nohup python3 server.py > /dev/null 2>&1 &
+		cd /usr/local/shadowsocksr && nohup python server.py > /dev/null 2>&1 &
 		echo "已成功设置Web面板开机自启动（crontab）"
 	fi
 	
