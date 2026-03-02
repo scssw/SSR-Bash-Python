@@ -164,10 +164,20 @@ if [ -e /usr/local/bin/ssr ];then
 		echo "Delete:${PWD}/install.sh"
 		rm -f ${PWD}/install.sh
         echo "Clean up miscellaneous!"
-        crontab -l > ~/crontab.bak 1>/dev/null 2>&1
-        sed -i "/timelimit.sh/d" ~/crontab.bak 1>/dev/null 2>&1
-        crontab ~/crontab.bak 1>/dev/null 2>&1
-        rm -rf ~/crontab.bak
+        if crontab -l > ~/crontab.bak 2>/dev/null;then
+            grep -F -x -v "0 */6 * * * sudo systemctl restart ssr-bash-python.service" ~/crontab.bak > ~/crontab.tmp || :
+            mv ~/crontab.tmp ~/crontab.bak
+            grep -F -x -v "0 */1 * * * sudo /bin/bash /usr/local/SSR-Bash-Python/user/backup.sh" ~/crontab.bak > ~/crontab.tmp || :
+            mv ~/crontab.tmp ~/crontab.bak
+            grep -F -x -v "*/6 * * * * /bin/bash /usr/local/SSR-Bash-Python/timelimit.sh c > /dev/null 2>&1" ~/crontab.bak > ~/crontab.tmp || :
+            mv ~/crontab.tmp ~/crontab.bak
+            grep -F -x -v "*/5 * * * * /bin/bash /usr/local/SSR-Bash-Python/timelimit.sh c" ~/crontab.bak > ~/crontab.tmp || :
+            mv ~/crontab.tmp ~/crontab.bak
+            crontab ~/crontab.bak 1>/dev/null 2>&1
+            rm -f ~/crontab.bak ~/crontab.tmp
+        else
+            rm -f ~/crontab.bak ~/crontab.tmp
+        fi
 		sleep 1s
 		echo "Uninstall complete!!"
 		exit 0
