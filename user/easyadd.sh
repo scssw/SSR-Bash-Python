@@ -191,7 +191,7 @@ cd /usr/local/shadowsocksr
 if command -v python3 &>/dev/null; then
     PYTHON_CMD="python3"
 elif command -v python2 &>/dev/null; then
-    PYTHON_CMD="python2"
+    PYTHON_CMD="python3"
 elif command -v python3 &>/dev/null; then
     PYTHON_CMD="python3"
 else
