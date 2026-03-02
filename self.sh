@@ -66,6 +66,71 @@ sumdc(){
 	echo -e "请输入\e[32;49m $sum1-$sum2 \e[0m的运算结果,表示你已经确认,输入错误将退出"
 	read sv
 }
+get_default_interfaces(){
+	ip route | awk '/^default / {print $5}' | sort -u
+}
+get_interface_speed_limit(){
+	local interface=$1
+	tc qdisc show dev "$interface" 2>/dev/null | sed -n 's/.* rate \([0-9]\+\)\([a-zA-Z]\+\).*/\1\2/p' | head -n 1
+}
+format_speed_limit_label(){
+	local speed_value=$1
+	if [[ -z $speed_value ]];then
+		echo "未限速"
+		return
+	fi
+	case "$speed_value" in
+		*mbit) echo "${speed_value%mbit}m" ;;
+		*kbit) echo "${speed_value%kbit}k" ;;
+		*gbit) echo "${speed_value%gbit}g" ;;
+		*) echo "$speed_value" ;;
+	esac
+}
+get_current_host_speed_limit_display(){
+	local interface
+	local speed_value
+	while read -r interface; do
+		[[ -z $interface ]] && continue
+		speed_value=$(get_interface_speed_limit "$interface")
+		if [[ -n $speed_value ]];then
+			format_speed_limit_label "$speed_value"
+			return
+		fi
+	done < <(get_default_interfaces)
+	echo "未限速"
+}
+delete_host_speed_limit(){
+	local interface
+	local interface_found=0
+	local speed_deleted=0
+	while read -r interface; do
+		[[ -z $interface ]] && continue
+		interface_found=1
+		if tc qdisc del dev "$interface" root 2>/dev/null;then
+			speed_deleted=1
+		fi
+	done < <(get_default_interfaces)
+	if [ -f "/etc/systemd/system/tc-limit.service" ];then
+		systemctl stop tc-limit.service >/dev/null 2>&1
+		systemctl disable tc-limit.service >/dev/null 2>&1
+		rm -f /etc/systemd/system/tc-limit.service
+		systemctl daemon-reload >/dev/null 2>&1
+	fi
+	if [ -f "/etc/rc.local" ];then
+		sed -i '\#/usr/local/SSR-Bash-Python/tc_limit.sh#d' /etc/rc.local
+	fi
+	if crontab -l 2>/dev/null | grep -q "/usr/local/SSR-Bash-Python/tc_limit.sh";then
+		crontab -l 2>/dev/null | grep -v "/usr/local/SSR-Bash-Python/tc_limit.sh" | crontab -
+	fi
+	rm -f /usr/local/SSR-Bash-Python/tc_limit.sh
+	if [[ $interface_found -eq 0 ]];then
+		echo "无法获取主机出口网卡"
+	elif [[ $speed_deleted -eq 1 ]];then
+		echo "已删除主机限速并清除开机自启动"
+	else
+		echo "当前未设置主机限速，已清除开机自启动"
+	fi
+}
 # 修改备份功能中的端口检测命令（约第80行）
 backup(){
     echo "开始备份!"
@@ -173,6 +238,7 @@ else
 fi
 }
 #Show
+current_host_speed_limit=$(get_current_host_speed_limit_display)
 echo "输入数字选择功能："
 echo "1.流控管理"
 echo "2.设置连接数"
@@ -182,12 +248,15 @@ echo "5.备份配置"
 echo "6.还原配置"
 echo "7.设置所有用户限速"
 echo "8.去除所有用户限速"
-echo "9.设置主机限速"
-echo "10.查看主机限速"
-echo "11.设置开机自启动主机限速"
+echo "9.设置开机自启动主机限速"
+if [[ $current_host_speed_limit == "未限速" ]];then
+	echo "10.删除主机限速（未限速）"
+else
+	echo "10.删除主机限速（已限速$current_host_speed_limit）"
+fi
 while :; do echo
 	read -p "请选择： " choice
-	if [[ ! $choice =~ ^([1-9]|10|11)$ ]]; then
+	if [[ ! $choice =~ ^([1-9]|10)$ ]]; then
 		[ -z "$choice" ] && ssr && break
 		echo "输入错误! 请输入正确的数字!"
 	else
@@ -300,50 +369,10 @@ if [[ $choice == 9 ]];then
 		echo "输入错误！请输入数字！"
 		bash /usr/local/SSR-Bash-Python/self.sh
 	else
-		# 获取主网卡名称
-		main_interface=$(ip route | grep default | awk '{print $5}')
-		if [[ -z $main_interface ]]; then
-			echo "无法获取主网卡名称，请手动设置"
-			bash /usr/local/SSR-Bash-Python/self.sh
-			exit 1
-		fi
-		# 清除已有的限速规则
-		tc qdisc del dev $main_interface root 2>/dev/null
-		# 添加新的限速规则
-		tc qdisc add dev $main_interface root tbf rate ${speed_limit}mbit burst 32kbit latency 400ms
-		echo "已成功设置主机限速为 ${speed_limit} Mbps"
-		bash /usr/local/SSR-Bash-Python/self.sh
-	fi
-fi
-if [[ $choice == 10 ]];then
-	# 获取主网卡名称
-	main_interface=$(ip route | grep default | awk '{print $5}')
-	if [[ -z $main_interface ]]; then
-		echo "无法获取主网卡名称"
-		bash /usr/local/SSR-Bash-Python/self.sh
-		exit 1
-	fi
-	# 查看当前限速规则
-	current_limit=$(tc qdisc show dev $main_interface | grep "tbf" | grep -oP "rate \K[0-9]+[a-zA-Z]+")
-	if [[ -z $current_limit ]]; then
-		echo "当前未设置主机限速"
-	else
-		echo "当前主机限速为：$current_limit"
-	fi
-	echo ""
-	read -n 1 -p "按任意键继续..." any_key
-	bash /usr/local/SSR-Bash-Python/self.sh
-fi
-if [[ $choice == 11 ]];then
-	read -p "请输入限速值(单位：Mbps)：" speed_limit
-	if [[ ! $speed_limit =~ ^[0-9]+$ ]]; then
-		echo "输入错误！请输入数字！"
-		bash /usr/local/SSR-Bash-Python/self.sh
-	else
-		# 获取主网卡名称
-		main_interface=$(ip route | grep default | awk '{print $5}')
-		if [[ -z $main_interface ]]; then
-			echo "无法获取主网卡名称，请手动设置"
+		# 获取主机出口网卡
+		default_interfaces=$(get_default_interfaces)
+		if [[ -z $default_interfaces ]]; then
+			echo "无法获取主机出口网卡，请手动设置"
 			bash /usr/local/SSR-Bash-Python/self.sh
 			exit 1
 		fi
@@ -351,10 +380,12 @@ if [[ $choice == 11 ]];then
 		# 创建限速脚本
 		cat > /usr/local/SSR-Bash-Python/tc_limit.sh << EOF
 #!/bin/bash
-# 清除已有的限速规则
-tc qdisc del dev ${main_interface} root 2>/dev/null
-# 添加新的限速规则
-tc qdisc add dev ${main_interface} root tbf rate ${speed_limit}mbit burst 32kbit latency 400ms
+interfaces=\$(ip route | awk '/^default / {print \$5}' | sort -u)
+for interface in \$interfaces; do
+	[ -z "\$interface" ] && continue
+	tc qdisc del dev "\$interface" root 2>/dev/null
+	tc qdisc add dev "\$interface" root tbf rate ${speed_limit}mbit burst 32kbit latency 400ms
+done
 EOF
 		chmod +x /usr/local/SSR-Bash-Python/tc_limit.sh
 		
@@ -396,6 +427,12 @@ EOF
 		
 		bash /usr/local/SSR-Bash-Python/self.sh
 	fi
+fi
+if [[ $choice == 10 ]];then
+	delete_host_speed_limit
+	echo ""
+	read -n 1 -p "按任意键继续..." any_key
+	bash /usr/local/SSR-Bash-Python/self.sh
 fi
 if [[ $choice == 12 ]];then
 	# 创建web面板启动脚本
