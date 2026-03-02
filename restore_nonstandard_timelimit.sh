@@ -118,7 +118,7 @@ for port in nonstandard_ports:
     if port not in existing_ports:
         missing_ports.append(port)
 
-with io.open(result_path, 'w', encoding='utf-8') as fh:
+with open(result_path, 'w') as fh:
     for line in added_lines:
         fh.write(line + '\n')
     fh.write('---\n')
