@@ -21,10 +21,10 @@ while :; do echo
 done
 
 if [[ $tc == 1 ]];then
-	if command -v python >/dev/null 2>&1; then
-		PYTHON_CMD="python"
-	elif command -v python2 >/dev/null 2>&1; then
-		PYTHON_CMD="python2"
+	if command -v python3 >/dev/null 2>&1; then
+		PYTHON_CMD="python3"
+	elif command -v python3 >/dev/null 2>&1; then
+		PYTHON_CMD="python3"
 	elif command -v python3 >/dev/null 2>&1; then
 		PYTHON_CMD="python3"
 	else
@@ -52,14 +52,14 @@ if [[ $tc == 2 ]];then
 	if [[ $lsid == 1 ]];then
 		read -p "输入用户名： " uid
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -c -u $uid
+		python3 mujson_mgr.py -c -u $uid
 		echo "已清空用户名为 ${uid} 的用户流量"
 	fi
 	
 	if [[ $lsid == 2 ]];then
 		read -p "输入端口号： " uid
 		cd /usr/local/shadowsocksr
-		python mujson_mgr.py -c -p $uid
+		python3 mujson_mgr.py -c -p $uid
 		echo "已清空端口号为${uid} 的用户流量"
 	fi
 	echo ""

@@ -38,7 +38,7 @@ set_traffic_limit() {
 get_daily_traffic() {
     local port=\$1
     # 从mudb.json获取端口流量
-    python -c "
+    python3 -c "
 import json
 import time
 import os
@@ -101,7 +101,7 @@ limit_port_speed() {
     local speed=\$2
     echo "正在修改端口 \$port 的限速为 \$speed..."
     # 使用python修改mudb.json
-    python -c "
+    python3 -c "
 import json
 import time
 import os
@@ -149,7 +149,7 @@ with open('/usr/local/shadowsocksr/mudb.json', 'w') as f:
 restore_port_speed() {
     local port=\$1
     echo "正在恢复端口 \$port 的速度..."
-    python -c "
+    python3 -c "
 import json
 with open('/usr/local/shadowsocksr/mudb.json', 'r') as f:
     data = json.load(f)
@@ -164,7 +164,7 @@ with open('/usr/local/shadowsocksr/mudb.json', 'w') as f:
 # 检查是否需要限速
 check_limit_needed() {
     local port=\$1
-    python -c "
+    python3 -c "
 import json
 import time
 import os
@@ -284,7 +284,7 @@ cancel_traffic_limit() {
     
     # 只恢复limit_record.json中的端口速度
     if [ -f "/usr/local/SSR-Bash-Python/limit_record.json" ]; then
-        python -c "
+        python3 -c "
 import json
 
 # 读取限速记录
@@ -365,7 +365,7 @@ view_traffic_logs() {
 # 查看限速端口
 view_limited_ports() {
     if [ -f "/usr/local/SSR-Bash-Python/limit_record.json" ]; then
-        python -c "
+        python3 -c "
 import json
 import time
 import math
