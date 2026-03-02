@@ -25,6 +25,14 @@ else
 	exit 1
 fi
 
+echo "警告：此操作会根据 ${mudb} 重建到期时间，并覆盖 ${userlimit}"
+echo "执行前会自动备份现有文件，但仍可能修复出错。"
+read -p "确认继续吗？输入 YES 继续，其它任意键取消： " confirm_repair
+if [[ "${confirm_repair}" != "YES" ]]; then
+	echo "已取消修复"
+	exit 0
+fi
+
 cleanup() {
 	rm -f "${tmpfile}"
 }
