@@ -194,8 +194,8 @@ if [[ "$sv" == "$solve" ]];then
 		if [[ -e ./check.log ]];then
 			mv ./check.log /usr/local/SSR-Bash-Python/check.log
 		fi
-		if [[ -e ./timelimit.db ]];then
-			mv -f ./timelimit.db /usr/local/SSR-Bash-Python/timelimit.db
+		if [[ -e /usr/local/SSR-Bash-Python/timelimit.db ]];then
+			mv ./timelimit.db /usr/local/SSR-Bash-Python/timelimit.db
 		fi
 		if [[ ${OS} =~ ^Ubuntu$|^Debian$ ]];then
 			iptables-restore < /etc/iptables.up.rules
