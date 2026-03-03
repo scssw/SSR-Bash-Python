@@ -198,3 +198,33 @@ user.sh
 version.txt
 www
 ############Filelist of /usr/local/shadowsockr
+Explorer
+LICENSE
+README.md
+ZBench-CN.sh
+dev.sh
+easyadd.conf
+install.sh
+iptables2.sh
+oldupdate.txt
+param.sh
+repair_timelimit.sh
+report.json
+restore_nonstandard_timelimit.sh
+self-check.sh
+self.sh
+server.sh
+servercheck.sh
+show_flow.py
+speed.py
+ssr
+timelimit.db
+timelimit.sh
+traffic.sh
+traffic_control.sh
+update.txt
+user
+user.sh
+version.txt
+www
+############Filelist of /usr/local/shadowsockr
