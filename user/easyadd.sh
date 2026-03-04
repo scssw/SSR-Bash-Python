@@ -43,27 +43,44 @@ source /usr/local/SSR-Bash-Python/easyadd.conf
 # 自动生成用户名和密码
 uname=$(date +%Y%m%d%H%M)
 upass=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 6)
+if [[ -n "${EASYADD_PASS}" ]]; then
+  upass="${EASYADD_PASS}"
+fi
 
-echo "自动添加用户，用户名: $uname, 密码: $upass"
+if [[ "${EASYADD_HIDE_USER}" == "1" ]]; then
+  echo "自动添加用户，密码: $upass"
+else
+  echo "自动添加用户，用户名: $uname, 密码: $upass"
+fi
 
-# 从端口段配置文件中随机选择一个可用端口
-while :; do
-  if [[ ! -f /usr/local/SSR-Bash-Python/port_ranges.conf ]] || [[ ! -s /usr/local/SSR-Bash-Python/port_ranges.conf ]]; then
-    # 如果没有配置端口段，使用默认范围
-    uport=$(rand 1000 65535)
-  else
-    # 随机选择一个端口段
-    port_range=$(grep -v '^#' /usr/local/SSR-Bash-Python/port_ranges.conf | shuf -n 1)
-    start_port=$(echo $port_range | cut -d'-' -f1)
-    end_port=$(echo $port_range | cut -d'-' -f2)
-    uport=$(rand $start_port $end_port)
+# 端口优先使用自定义端口，否则随机分配
+if [[ -n "${EASYADD_PORT}" ]]; then
+  uport="${EASYADD_PORT}"
+  port=`ss -ntl | awk '{print $4}' | awk -F : '{print $NF}' | sort -nu | grep "^${uport}$"`
+  if [[ ! -z ${port} ]]; then
+    echo "端口 ${uport} 已被占用，请更换端口后重试。"
+    exit 1
   fi
-  # 检查端口是否已被使用
-  port=`ss -ntl | awk '{print $4}' | awk -F : '{print $NF}' | sort -nu | grep "$uport"`
-  if [[ -z ${port} ]]; then
-    break
-  fi
-done
+else
+  # 从端口段配置文件中随机选择一个可用端口
+  while :; do
+    if [[ ! -f /usr/local/SSR-Bash-Python/port_ranges.conf ]] || [[ ! -s /usr/local/SSR-Bash-Python/port_ranges.conf ]]; then
+      # 如果没有配置端口段，使用默认范围
+      uport=$(rand 1000 65535)
+    else
+      # 随机选择一个端口段
+      port_range=$(grep -v '^#' /usr/local/SSR-Bash-Python/port_ranges.conf | shuf -n 1)
+      start_port=$(echo $port_range | cut -d'-' -f1)
+      end_port=$(echo $port_range | cut -d'-' -f2)
+      uport=$(rand $start_port $end_port)
+    fi
+    # 检查端口是否已被使用
+    port=`ss -ntl | awk '{print $4}' | awk -F : '{print $NF}' | sort -nu | grep "^${uport}$"`
+    if [[ -z ${port} ]]; then
+      break
+    fi
+  done
+fi
 
 # 检查参数
 if [[ $# -eq 3 ]]; then
@@ -243,7 +260,9 @@ echo "你可以复制以下信息给你的用户: "
 echo -e "\e[1;36m====================\e[0m"
 echo -e "\033[1;32m$ssr_link\033[0m"  # 修改此处行号
 echo ""
-echo "用户名: $uname"
+if [[ "${EASYADD_HIDE_USER}" != "1" ]]; then
+  echo "用户名: $uname"
+fi
 echo "备注: $remark"
 echo "服务器地址: $myipname"
 echo "远程端口号: $uport"
