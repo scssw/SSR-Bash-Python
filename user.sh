@@ -63,7 +63,56 @@ if [[ $userc == 1 ]];then
 fi
 
 if [[ $userc == 2 ]];then
-	bash /usr/local/SSR-Bash-Python/user/add.sh
+	while :; do
+		read -p "输入端口: " custom_port
+		if [[ "$custom_port" =~ ^[0-9]+$ ]] && [[ "$custom_port" -ge 1 ]] && [[ "$custom_port" -le 65535 ]]; then
+			break
+		else
+			echo "端口格式错误，请输入 1-65535 的数字。"
+		fi
+	done
+
+	while :; do
+		read -p "输入密码: " custom_pass
+		if [[ -n "$custom_pass" ]]; then
+			break
+		else
+			echo "密码不能为空。"
+		fi
+	done
+
+	while :; do
+		read -p "输入流量(GB，例: 50 或 50g): " ut_input
+		ut=$(echo "$ut_input" | tr '[:upper:]' '[:lower:]' | sed 's/gb//g;s/g//g;s/[[:space:]]//g')
+		if [[ "$ut" =~ ^[0-9]+$ ]] && [[ "$ut" -gt 0 ]]; then
+			break
+		else
+			echo "流量格式错误，请输入正整数。"
+		fi
+	done
+
+	case "$ut" in
+		50) limit="1m" ;;
+		150) limit="3m" ;;
+		300) limit="6m" ;;
+		600) limit="12m" ;;
+		*)
+			while :; do
+				read -p "输入有效期(例: 25.6.5 或 1m): " limit
+				if [[ -n "$limit" ]]; then
+					break
+				else
+					echo "有效期不能为空。"
+				fi
+			done
+			;;
+	esac
+
+	export EASYADD_PORT="$custom_port"
+	export EASYADD_PASS="$custom_pass"
+	export EASYADD_HIDE_USER="1"
+	bash /usr/local/SSR-Bash-Python/user/easyadd.sh "$ut" "$limit"
+	unset EASYADD_PORT EASYADD_PASS EASYADD_HIDE_USER
 	echo ""
 	bash /usr/local/SSR-Bash-Python/user.sh
 fi
