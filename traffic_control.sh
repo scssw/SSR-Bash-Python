@@ -17,11 +17,32 @@ show_menu() {
     echo "=================================="
 }
 
+# 使用程序管理(7.设置所有用户限速)同款逻辑，统一设置全体用户限速
+set_all_users_speed_mbps() {
+    local speed_limit_mbps="$1"
+    if [[ ! $speed_limit_mbps =~ ^[0-9]+$ ]]; then
+        echo "统一设置用户限速失败：限速值必须是数字"
+        return 1
+    fi
+
+    local speed_limit_kbps=$((speed_limit_mbps * 128))
+    python3 /usr/local/SSR-Bash-Python/speed.py "$speed_limit_kbps" >/dev/null 2>&1
+    return $?
+}
+
 # 设置流量超额限速
 set_traffic_limit() {
     read -p "请输入流量阈值(单位：MB)：" traffic_limit
     if [[ ! $traffic_limit =~ ^[0-9]+$ ]]; then
         echo "输入错误！请输入数字！"
+        return
+    fi
+
+    echo "先将所有用户限速恢复为 50Mbps 初始值（调用程序管理同款逻辑）..."
+    if set_all_users_speed_mbps 50; then
+        echo "已完成所有用户限速恢复：50Mbps"
+    else
+        echo "恢复所有用户限速失败，请先检查 speed.py 或 mudb.json"
         return
     fi
 
@@ -155,7 +176,7 @@ with open('/usr/local/shadowsocksr/mudb.json', 'r') as f:
     data = json.load(f)
 for user in data:
     if user['port'] == \$port:
-        user['speed_limit_per_user'] = 6200
+        user['speed_limit_per_user'] = 6400
 with open('/usr/local/shadowsocksr/mudb.json', 'w') as f:
     json.dump(data, f, indent=4)
 " > /dev/null 2>&1
@@ -303,7 +324,7 @@ try:
         limited_ports.append(port)
         for user in data:
             if user['port'] == port:
-                user['speed_limit_per_user'] = 6200
+                user['speed_limit_per_user'] = 6400
                 print('端口 {} 已重置速度为默认值'.format(port))
     
     # 保存修改后的配置
