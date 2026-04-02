@@ -63,20 +63,35 @@ get_daily_traffic() {
 import json
 import time
 import os
+from datetime import datetime, timedelta
 
 # 流量记录文件路径
 TRAFFIC_RECORD = '/usr/local/SSR-Bash-Python/traffic_record.json'
 # 限速记录文件路径
 LIMIT_RECORD = '/usr/local/SSR-Bash-Python/limit_record.json'
-# 获取当前日期
-current_date = time.strftime('%Y-%m-%d')
+# 获取当前日期和昨天日期
+today = datetime.now().date()
+current_date = today.strftime('%Y-%m-%d')
+yesterday_date = (today - timedelta(days=1)).strftime('%Y-%m-%d')
 
 # 读取流量记录
 if os.path.exists(TRAFFIC_RECORD):
-    with open(TRAFFIC_RECORD, 'r') as f:
-        traffic_record = json.load(f)
+    try:
+        with open(TRAFFIC_RECORD, 'r') as f:
+            traffic_record = json.load(f)
+        if not isinstance(traffic_record, dict):
+            traffic_record = {}
+    except (ValueError, json.JSONDecodeError):
+        traffic_record = {}
 else:
     traffic_record = {}
+
+# 仅保留昨天和今天的数据，避免文件无限增大
+traffic_record = {
+    date_key: port_data
+    for date_key, port_data in traffic_record.items()
+    if date_key in {yesterday_date, current_date} and isinstance(port_data, dict)
+}
 
 # 读取限速记录
 if os.path.exists(LIMIT_RECORD):
