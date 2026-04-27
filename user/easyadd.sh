@@ -235,6 +235,12 @@ if [[ $SSRPID == "" ]]; then
 fi
 
 myipname=`cat /usr/local/shadowsocksr/myip.txt`
+host_prefix="${myipname%%.*}"
+if [[ "$myipname" == *.* ]]; then
+  ipv6_myipname="${host_prefix}6${myipname#"$host_prefix"}"
+else
+  ipv6_myipname="${myipname}6"
+fi
 
 # 生成备注信息
 # 从域名中提取前缀并转换为大写
@@ -245,21 +251,30 @@ expire_date=$(cat /usr/local/SSR-Bash-Python/timelimit.db | grep "${uport}:" | a
 
 # 组合备注
 remark="${prefix}:${uport}-${expire_date}"
+remark_ipv6="${prefix}6:${uport}-${expire_date}"
 
 # 生成带备注的加密SSR链接
 # 修复密码编码逻辑（原始密码只需base64编码一次）
 raw_pass_base64=$(echo -n "$upass" | base64 -w 0)
 encoded_remark=$(echo -n "$remark" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
+encoded_remark_ipv6=$(echo -n "$remark_ipv6" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
 server_string="${myipname}:${uport}:${ux1}:${um1}:${uo1}:${raw_pass_base64}/?remarks=${encoded_remark}"
+server_string_ipv6="${ipv6_myipname}:${uport}:${ux1}:${um1}:${uo1}:${raw_pass_base64}/?remarks=${encoded_remark_ipv6}"
 
 # 生成最终SSR链接（整个字符串做一次URL安全base64编码）
 encoded_server=$(echo -n "$server_string" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
 ssr_link="ssr://${encoded_server}"
+encoded_server_ipv6=$(echo -n "$server_string_ipv6" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
+ssr_link_ipv6="ssr://${encoded_server_ipv6}"
 
 echo "你可以复制以下信息给你的用户: "
 echo -e "\e[1;36m====================\e[0m"
 echo -e "\033[1;32m$ssr_link\033[0m"  # 修改此处行号
 echo ""
+echo -e "\033[1;32m$ssr_link_ipv6\033[0m"
+echo ""
+echo "IPv6 Host: $ipv6_myipname"
+echo "IPv6备注: $remark_ipv6"
 if [[ "${EASYADD_HIDE_USER}" != "1" ]]; then
   echo "用户名: $uname"
 fi

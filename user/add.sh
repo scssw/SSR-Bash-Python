@@ -364,8 +364,35 @@ if [[ $SSRPID == "" ]]; then
 	echo "ShadowsocksR服务器已启动"
 fi
 myipname=`cat /usr/local/shadowsocksr/myip.txt`
+host_prefix="${myipname%%.*}"
+if [[ "$myipname" == *.* ]]; then
+	ipv6_myipname="${host_prefix}6${myipname#"$host_prefix"}"
+else
+	ipv6_myipname="${myipname}6"
+fi
+prefix=$(echo $myipname | awk -F'.' '{print $1}' | tr '[:lower:]' '[:upper:]')
+expire_date=$(cat /usr/local/SSR-Bash-Python/timelimit.db | grep "${uport}:" | awk -F":" '{print $2}' | sed 's/\([0-9]\{4\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)\([0-9]\{2\}\)/\2.\3/' | sed 's/^0//' | sed 's/\.0/./')
+if [[ -z ${expire_date} ]];then
+	expire_date="永久"
+fi
+remark="${prefix}:${uport}-${expire_date}"
+remark_ipv6="${prefix}6:${uport}-${expire_date}"
+raw_pass_base64=$(echo -n "$upass" | base64 -w 0)
+encoded_remark=$(echo -n "$remark" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
+encoded_remark_ipv6=$(echo -n "$remark_ipv6" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
+server_string="${myipname}:${uport}:${ux1}:${um1}:${uo1}:${raw_pass_base64}/?remarks=${encoded_remark}"
+server_string_ipv6="${ipv6_myipname}:${uport}:${ux1}:${um1}:${uo1}:${raw_pass_base64}/?remarks=${encoded_remark_ipv6}"
+encoded_server=$(echo -n "$server_string" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
+encoded_server_ipv6=$(echo -n "$server_string_ipv6" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
+ssr_link="ssr://${encoded_server}"
+ssr_link_ipv6="ssr://${encoded_server_ipv6}"
 echo "你可以复制以下信息给你的用户: "
 echo "===================="
+echo "$ssr_link"
+echo "$ssr_link_ipv6"
+echo "备注: $remark"
+echo "IPv6备注: $remark_ipv6"
+echo "IPv6 Host: $ipv6_myipname"
 echo "用户名: $uname"
 echo "服务器地址: $myipname"
 echo "远程端口号: $uport"

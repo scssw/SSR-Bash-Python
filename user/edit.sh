@@ -55,6 +55,12 @@ else
 
 	# 生成带备注的SSR链接
 	myipname=`cat /usr/local/shadowsocksr/myip.txt`
+	host_prefix="${myipname%%.*}"
+	if [[ "$myipname" == *.* ]]; then
+		ipv6_myipname="${host_prefix}6${myipname#"$host_prefix"}"
+	else
+		ipv6_myipname="${myipname}6"
+	fi
 	username=`python3 mujson_mgr.py -l -p $uid | head -n 2 | tail -n 1 | awk -F" : " '{ print $2 }'`
 	upass=`python3 mujson_mgr.py -l -p $uid | grep "passwd :" | awk -F" : " '{ print $2 }'`
 	um1=`python3 mujson_mgr.py -l -p $uid | grep "method :" | awk -F" : " '{ print $2 }'`
@@ -69,15 +75,29 @@ else
 
 	# 组合备注
 	remark="${prefix}:${uid}-${expire_date}"
+	remark_ipv6="${prefix}6:${uid}-${expire_date}"
 
 	# 生成带备注的加密SSR链接
 	encoded_pass=$(echo -n "$upass" | base64 | tr '+/' '-_' | tr -d '=')
 	encoded_remark=$(echo -n "$remark" | base64 | tr '+/' '-_' | tr -d '=')
+	encoded_remark_ipv6=$(echo -n "$remark_ipv6" | base64 | tr '+/' '-_' | tr -d '=')
 	server_string="${myipname}:${uid}:${ux1}:${um1}:${uo1}:${encoded_pass}/?remarks=${encoded_remark}"
 	encoded_server=$(echo -n "$server_string" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
 	ssr_link="ssr://${encoded_server}"
+	host_prefix="${myipname%%.*}"
+	if [[ "$myipname" == *.* ]]; then
+		ipv6_myipname="${host_prefix}6${myipname#"$host_prefix"}"
+	else
+		ipv6_myipname="${myipname}6"
+	fi
+	server_string_ipv6="${ipv6_myipname}:${uid}:${ux1}:${um1}:${uo1}:${encoded_pass}/?remarks=${encoded_remark_ipv6}"
+	encoded_server_ipv6=$(echo -n "$server_string_ipv6" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
+	ssr_link_ipv6="ssr://${encoded_server_ipv6}"
 
 	echo "$ssr_link"
+	echo "$ssr_link_ipv6"
+	echo "IPv6 Host: $ipv6_myipname"
+	echo "IPv6备注: $remark_ipv6"
 	echo ""
 	echo "备注: $remark"
 fi
@@ -551,18 +571,32 @@ if [[ $ec == 11 ]];then
 
 	# 组合备注
 	remark="${prefix}:${port}-${expire_date}"
+	remark_ipv6="${prefix}6:${port}-${expire_date}"
 
 	# 生成带备注的加密SSR链接
 	encoded_pass=$(echo -n "$upass" | base64 | tr '+/' '-_' | tr -d '=')
 	encoded_remark=$(echo -n "$remark" | base64 | tr '+/' '-_' | tr -d '=')
+	encoded_remark_ipv6=$(echo -n "$remark_ipv6" | base64 | tr '+/' '-_' | tr -d '=')
 	server_string="${myipname}:${port}:${ux1}:${um1}:${uo1}:${encoded_pass}/?remarks=${encoded_remark}"
 	encoded_server=$(echo -n "$server_string" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
 	ssr_link="ssr://${encoded_server}"
+	host_prefix="${myipname%%.*}"
+	if [[ "$myipname" == *.* ]]; then
+		ipv6_myipname="${host_prefix}6${myipname#"$host_prefix"}"
+	else
+		ipv6_myipname="${myipname}6"
+	fi
+	server_string_ipv6="${ipv6_myipname}:${port}:${ux1}:${um1}:${uo1}:${encoded_pass}/?remarks=${encoded_remark_ipv6}"
+	encoded_server_ipv6=$(echo -n "$server_string_ipv6" | base64 -w 0 | tr '+/' '-_' | tr -d '=')
+	ssr_link_ipv6="ssr://${encoded_server_ipv6}"
 
 	echo ""
 	echo "你可以复制以下信息给你的用户: "
 	echo "===================="
 	echo "$ssr_link"
+	echo "$ssr_link_ipv6"
+	echo "IPv6 Host: $ipv6_myipname"
+	echo "IPv6备注: $remark_ipv6"
 	echo ""
 	echo "备注: $remark"
 	echo "服务器地址: $myipname"
@@ -637,6 +671,9 @@ if [[ $ec == 12 ]];then
 	echo "你可以复制以下信息给你的用户: "
 	echo "===================="
 	echo "SSR链接: $ssr_link"
+	echo "SSR IPv6链接: $ssr_link_ipv6"
+	echo "IPv6 Host: $ipv6_myipname"
+	echo "IPv6备注: $remark_ipv6"
 	echo "用户名: $username"
 	echo "备注: $remark"
 	echo "服务器地址: $myipname"
