@@ -136,6 +136,7 @@ backup(){
     echo "开始备份!"
     mkdir -p ${HOME}/backup/tmp
     cd ${HOME}/backup/tmp
+    rm -f ./port.conf
     cp /usr/local/shadowsocksr/mudb.json ./
     if [[ -e /usr/local/SSR-Bash-Python/check.log ]];then
         cp /usr/local/SSR-Bash-Python/check.log ./
@@ -145,6 +146,8 @@ backup(){
     fi
     # 使用ss命令替代netstat
     ss -nlt | awk '/LISTEN/{print $4}' | awk -F: '{print $NF}' | sort -nu >> ./port.conf
+    awk '/^[0-9]+$/ && $1 >= 1 && $1 <= 65535' ./port.conf | sort -n | uniq > ./port.conf.tmp
+    mv ./port.conf.tmp ./port.conf
     wf=`ls | wc -l`
     if [[ $wf -ge 2 ]];then
         tar -zcvf ../ssr-conf.tar.gz ./*
@@ -157,68 +160,82 @@ backup(){
         echo "备份失败"
     fi
 }
+apply_security_iptables_hooks(){
+	[ -x "/usr/local/sbin/net-scan-cleanup-apply" ] && "/usr/local/sbin/net-scan-cleanup-apply"
+	[ -x "/usr/local/sbin/ssh22-whitelist-apply" ] && "/usr/local/sbin/ssh22-whitelist-apply"
+}
+
+restore_ssr_ports_fast(){
+	local port tmp_rules
+	tmp_rules="/tmp/iptables.ssr-clean.$$"
+	iptables-save | awk '$1 == "-A" && $2 == "INPUT" && $0 ~ /--dport/ && $0 ~ /--state NEW/ && $0 ~ /-j ACCEPT/ { next } { print }' > "$tmp_rules"
+	iptables-restore < "$tmp_rules"
+	rm -f "$tmp_rules"
+	if [[ -s ./port.conf ]];then
+		while read -r port; do
+			[[ "$port" =~ ^[0-9]+$ ]] || continue
+			[[ "$port" -ge 1 && "$port" -le 65535 ]] || continue
+			iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport "$port" -j ACCEPT
+			iptables -I INPUT -m state --state NEW -m udp -p udp --dport "$port" -j ACCEPT
+		done < ./port.conf
+	fi
+	apply_security_iptables_hooks
+	iptables-save > /etc/iptables.up.rules
+}
+
 recover(){
 mkdir -p ${HOME}/backup 
 echo "这将会导致你现有的配置被覆盖"
 sumdc
 if [[ "$sv" == "$solve" ]];then
-    # 新增：彻底清理端口规则
-    iptables-save | awk '!/dport/' > /tmp/iptables.clean
-    iptables-restore < /tmp/iptables.clean
+    # 保留安全链；不要清掉全部 dport 规则，否则 NET_SCAN_CLEANUP 会在 SSR 还原时丢失。
+    iptables-restore < /etc/iptables.up.rules
+    [ -x "/usr/local/sbin/net-scan-cleanup-apply" ] && "/usr/local/sbin/net-scan-cleanup-apply"
+    [ -x "/usr/local/sbin/ssh22-whitelist-apply" ] && "/usr/local/sbin/ssh22-whitelist-apply"
     iptables-save > /etc/iptables.up.rules
-    bakf=$(ls ${HOME}/backup | wc -l)
-    if [[ ${bakf} != 1 ]];then
-        cd /usr/local/SSR-Bash-Python/Explorer 
-        # 移除gcc编译步骤，改用shell内置sleep
-        if [[ ! -e /bin/usleep ]];then
-            echo -e "#!/bin/sh\nsleep 0.1" > /bin/usleep  # 创建替代脚本
-            chmod +x /bin/usleep
+    bakfile=""
+    mapfile -t bakfiles < <(find "${HOME}/backup" -maxdepth 1 -type f -name "ssr-conf*.tar.gz" -printf "%T@ %p\n" 2>/dev/null | sort -nr | awk '{sub(/^[^ ]+ /, ""); print}')
+    if [[ ${#bakfiles[@]} -eq 1 ]];then
+        bakfile="${bakfiles[0]}"
+    elif [[ ${#bakfiles[@]} -gt 1 ]];then
+        echo "发现多个备份文件，请选择要还原的备份："
+        for i in "${!bakfiles[@]}"; do
+            f="${bakfiles[$i]}"
+            printf "%2d. %s  %s  %s\n" "$((i+1))" "$(date -r "$f" "+%Y-%m-%d %H:%M:%S")" "$(du -h "$f" | awk '{print $1}')" "$(basename "$f")"
+        done
+        read -p "输入序号还原，直接回车默认最新，输入0取消: " bakchoice
+        if [[ -z "$bakchoice" ]];then
+            bakchoice=1
         fi
-        read -p "未发现备份文件或者存在多个备份文件，请手动选择（按Y键将打开一个文件管理器）" yn
-        if [[ ${yn} == [Yy] ]];then
-            chmod +x /usr/local/SSR-Bash-Python/Explorer/*
-            bash ./Explorer.sh "${HOME}/backup"
-	    chmod -x /usr/local/SSR-Bash-Python/Explorer/*
-            bakfile=$(cat /tmp/BakFilename.tmp)
-            if [[ ! -e ${bakfile} ]];then
-                echo "无效!"
-            fi
+        if [[ "$bakchoice" == "0" ]];then
+            echo "已取消还原"
+            return
+        fi
+        if [[ "$bakchoice" =~ ^[0-9]+$ && "$bakchoice" -ge 1 && "$bakchoice" -le ${#bakfiles[@]} ]];then
+            bakfile="${bakfiles[$((bakchoice-1))]}"
+        else
+            echo "输入错误，取消还原"
+            return
         fi
     fi
-	if [[ -z ${bakfile} ]];then
-		bakfile=${HOME}/backup/ssr-conf.tar.gz 
-	fi
-	if [[ -e ${bakfile} ]];then
-        cd ${HOME}/backup
-		tar -zxvf ${bakfile} -C ./
+    echo "将还原备份：$bakfile"
+	if [[ -n "$bakfile" && -e "$bakfile" ]];then
+        cd "${HOME}/backup"
+		tar -zxvf "$bakfile" -C ./
 		if [[ -e ./check.log ]];then
 			mv ./check.log /usr/local/SSR-Bash-Python/check.log
 		fi
 		if [[ -e /usr/local/SSR-Bash-Python/timelimit.db ]];then
 			mv ./timelimit.db /usr/local/SSR-Bash-Python/timelimit.db
 		fi
-		if [[ ${OS} =~ ^Ubuntu$|^Debian$ ]];then
-			iptables-restore < /etc/iptables.up.rules
-			for port in `cat ./port.conf`; do iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport $port -j ACCEPT ; done
-			for port in `cat ./port.conf`; do iptables -I INPUT -m state --state NEW -m udp -p udp --dport $port -j ACCEPT ; done
-			iptables-save > /etc/iptables.up.rules
-			iptables -vnL
-		fi
-		if [[ ${OS} == CentOS ]];then
-			if [[ $CentOS_RHEL_version == 7 ]];then
-				iptables-restore < /etc/iptables.up.rules
-				for port in `cat ./port.conf`; do iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport $port -j ACCEPT ; done
-				for port in `cat ./port.conf`; do iptables -I INPUT -m state --state NEW -m udp -p udp --dport $port -j ACCEPT ; done
-				iptables-save > /etc/iptables.up.rules
-				iptables -vnL
-			else
-				for port in `cat ./port.conf`; do iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport $port -j ACCEPT ; done 
-				for port in `cat ./port.conf`; do iptables -I INPUT -m state --state NEW -m udp -p udp --dport $port -j ACCEPT ; done
-				/etc/init.d/iptables save
-				/etc/init.d/iptables restart
-				iptables -vnL && sed -i '5a#tcp port rule' /etc/sysconfig/iptables
+			if [[ ${OS} =~ ^Ubuntu$|^Debian$ ]];then
+				restore_ssr_ports_fast
+				iptables -vnL | sed -n '1,12p'
 			fi
-		fi
+			if [[ ${OS} == CentOS ]];then
+				restore_ssr_ports_fast
+				iptables -vnL | sed -n '1,12p'
+			fi
 		rm -f /usr/local/shadowsocksr/mudb.json
 		mv ./mudb.json /usr/local/shadowsocksr/mudb.json
 		rm -f ./port.conf
@@ -229,7 +246,7 @@ if [[ "$sv" == "$solve" ]];then
 		else
 			echo "配置未生效，还原失败，请联系作者解决"
 		fi
-		rm /tmp/BakFilename.tmp
+		rm -f /tmp/BakFilename.tmp
 	else
 		echo "备份文件不存在，请检查！"
 	fi
