@@ -250,6 +250,8 @@ Type=forking
 ExecStart=/usr/local/SSR-Bash-Python/user_web_panel.sh
 Restart=always
 RestartSec=5
+LimitNOFILE=512000
+LimitNPROC=512000
 
 [Install]
 WantedBy=multi-user.target
@@ -372,6 +374,8 @@ Type=simple
 ExecStart=/usr/bin/python3 /usr/local/shadowsocksr/server.py
 Restart=always
 RestartSec=5
+LimitNOFILE=512000
+LimitNPROC=512000
 
 [Install]
 WantedBy=multi-user.target
