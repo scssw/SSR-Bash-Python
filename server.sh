@@ -252,6 +252,7 @@ Restart=always
 RestartSec=5
 LimitNOFILE=512000
 LimitNPROC=512000
+Environment="MALLOC_ARENA_MAX=2"
 
 [Install]
 WantedBy=multi-user.target
@@ -376,6 +377,7 @@ Restart=always
 RestartSec=5
 LimitNOFILE=512000
 LimitNPROC=512000
+Environment="MALLOC_ARENA_MAX=2"
 
 [Install]
 WantedBy=multi-user.target
