@@ -162,6 +162,8 @@ fi
 if [[ $serverc == 4 ]];then
 	trap 'bash /usr/local/SSR-Bash-Python/server.sh' 2
 	bash /usr/local/shadowsocksr/tail.sh
+	trap - 2
+	bash /usr/local/SSR-Bash-Python/server.sh
 fi
 
 if [[ $serverc == 5 ]];then
